@@ -21,9 +21,9 @@ password: Cc202505!
 ```
 
 # Dados
-[Stock Market Dataset](https://www.kaggle.com/datasets/jacksoncrow/stock-market-dataset)
-[S&P 500 stock data](https://www.kaggle.com/datasets/camnugent/sandp500)
-[Financial_Markets](https://www.kaggle.com/datasets/regaipkurt/financial-markets)
+- [Stock Market Dataset](https://www.kaggle.com/datasets/jacksoncrow/stock-market-dataset)
+- [S&P 500 stock data](https://www.kaggle.com/datasets/camnugent/sandp500)
+- Financial_Markets](https://www.kaggle.com/datasets/regaipkurt/financial-markets)
 
 ### Perguntas
 Quais ações tiveram maior valorização percentual no último ano?
