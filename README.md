@@ -21,11 +21,25 @@ password: Cc202505!
 ```
 
 # Dados
-[Airbnb Open Data](https://www.kaggle.com/datasets/arianazmoudeh/airbnbopendata/data)
+[Stock Market Dataset](https://www.kaggle.com/datasets/jacksoncrow/stock-market-dataset)
+[S&P 500 stock data](https://www.kaggle.com/datasets/camnugent/sandp500)
+[Financial_Markets](https://www.kaggle.com/datasets/regaipkurt/financial-markets)
 
 ### Perguntas
-O que podemos aprender sobre diferentes anfitriões e áreas?
+Quais ações tiveram maior valorização percentual no último ano?
 
-O que podemos aprender com as previsões? (ex: locais, preços, avaliações, etc.)
+Qual é a volatilidade média das ações por setor ou indústria?
 
-Quais hosts são os mais ocupados e por quê?
+Quais empresas registraram maior volume de negociação em determinado período?
+
+Existe correlação entre o preço das ações e o volume de negociações?
+
+Quais ações apresentaram crescimento consistente ao longo dos últimos 5 anos?
+
+Quais setores apresentam melhor desempenho médio no índice S&P 500?
+
+Quais ações sofreram maior queda em períodos de crise econômica?
+
+Qual é o retorno médio de dividendos por setor e por empresa?
+
+
