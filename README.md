@@ -22,9 +22,7 @@ Qual é o retorno médio de dividendos por setor e por empresa?
 - [S&P 500 stock data](https://www.kaggle.com/datasets/camnugent/sandp500)
 - [S&P 500 companies](https://github.com/datasets/s-and-p-500-companies/blob/main/data/constituents.csv)
 
----
-
-##Trello
+### Trello
 
 link:https://trello.com/invite/b/KkIiciFk/ATTIc77290b98b15e3589e6f2e7ea4d9dad3915E3CA4/gest-o-de-tarefas-scrum-
 
