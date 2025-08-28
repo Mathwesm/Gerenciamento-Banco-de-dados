@@ -33,9 +33,9 @@
 
 
 ## Datasets
-- [S&P 500](https://fred.stlouisfed.org/series/SP500)
+- [S&P 500 Fred](datasets/S&P500-fred.csv)
+- [S&P 500 companies](datasets/S&P-500-companies.csv)
 - [S&P 500 stock data](https://www.kaggle.com/datasets/camnugent/sandp500)
-- [S&P 500 companies](https://github.com/datasets/s-and-p-500-companies/blob/main/data/constituents.csv)
 
 ## Planejamento
 - [Planner](https://trello.com/invite/b/KkIiciFk/ATTIc77290b98b15e3589e6f2e7ea4d9dad3915E3CA4/gest-o-de-tarefas-scrum)
