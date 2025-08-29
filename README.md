@@ -14,7 +14,7 @@
 - [Datasets](#datasets)
 - [Planejamento](#planejamento)
 - [Configuração](#configuração-recomendada)
-- [Iniciando Instância do Container](#iniciando-instância-do-container)
+  - [Iniciando Instância do Container](#iniciando-instância-do-container)
 
 ## Perguntas
 - Quais ações tiveram maior valorização percentual no último ano?
@@ -53,8 +53,8 @@ Existem duas formas de iniciar o banco de dados SQL Server: utilizando docker ru
 - Docker compose
 - Docker Desktop
 - Gerenciador de banco de dados de sua preferencia
-- [sql server management studio](https://learn.microsoft.com/en-us/ssms/install/install) 
-- [dbeaver](https://dbeaver.io/)
+  - [sql server management studio](https://learn.microsoft.com/en-us/ssms/install/install) 
+  - [dbeaver](https://dbeaver.io/)
 
 
 
