@@ -13,7 +13,7 @@ Data,DATE,Data do registro
 Ano,INT,Ano da data
 Mes,INT,Mês (1–12)
 Trimestre,INT,Trimestre (1–4)
-DiaSemana,VARCHAR(15),Dia da semana (Segunda, Terça, etc.)
+DiaSemana,VARCHAR(15),Dia da semana (Segunda. Terça. etc.)
 EhFeriado,BIT,Indica se foi feriado/mercado fechado (0 = não, 1 = sim)
 IndiceID (PK),INT,Identificador único do índice
 NomeIndice,VARCHAR(50),Nome do índice (ex: S&P 500)
@@ -35,3 +35,4 @@ EmpresaID (FK),INT,Chave estrangeira ? DimEmpresa
 TempoID (FK),INT,Chave estrangeira ? DimTempo
 ValorDividendos,DECIMAL(18,4),Valor absoluto do dividendo pago
 DividendYield,DECIMAL(8,4),Percentual de rendimento por dividendo
+
