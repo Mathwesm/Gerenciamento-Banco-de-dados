@@ -1,37 +1,37 @@
-Campo ;Tipo de Dado;Descrição
-EmpresaID (PK);INT;Identificador único da empresa no banco
-Symbol;VARCHAR(10);Código da ação (ticker)
-Nome;VARCHAR(100);Nome da empresa
-Setor;VARCHAR(50);Setor econômico (GICS Sector)
-SubSetor;VARCHAR(100);Subsetor econômico (GICS Sub-Industry)
-Localizacao;VARCHAR(100);Localização da sede da empresa
-DataEntradaIndice;DATE;Data de inclusão da empresa no índice S&P 500
-CIK;INT;Identificador único da empresa na SEC (U.S. Securities and Exchange Comm.)
-AnoFundacao;VARCHAR(10);"Ano de fundação da empresa (às vezes histórico contém intervalo ex: ""2013 (1888)"")"
-TempoID (PK);INT;Identificador único do tempo
-Data;DATE;Data do registro
-Ano;INT;Ano da data
-Mes;INT;Mês (1–12)
-Trimestre;INT;Trimestre (1–4)
-DiaSemana;VARCHAR(15);Dia da semana (Segunda, Terça, etc.)
-EhFeriado;BIT;Indica se foi feriado/mercado fechado (0 = não, 1 = sim)
-IndiceID (PK);INT;Identificador único do índice
-NomeIndice;VARCHAR(50);Nome do índice (ex: S&P 500)
-Descricao;VARCHAR(200);Breve descrição sobre o índice
-PrecoID (PK);BIGINT;Identificador único do preço registrado
-EmpresaID (FK);INT;Chave estrangeira ? DimEmpresa
-TempoID (FK);INT;Chave estrangeira ? DimTempo
-Open;DECIMAL(18,4);Preço de abertura da ação
-High;DECIMAL(18,4);Maior preço atingido no dia
-Low;DECIMAL(18,4);Menor preço atingido no dia
-Close;DECIMAL(18,4);Preço de fechamento
-Volume;BIGINT;Quantidade de ações negociadas
-IndiceRegistroID (PK);BIGINT;Identificador único do registro do índice
-IndiceID (FK);INT;Chave estrangeira ? DimIndice
-TempoID (FK);INT;Chave estrangeira ? DimTempo
-ValorFechamento;DECIMAL(18,4);Valor de fechamento diário do índice S&P500
-DividendoID (PK);BIGINT;Identificador único do registro de dividendo
-EmpresaID (FK);INT;Chave estrangeira ? DimEmpresa
-TempoID (FK);INT;Chave estrangeira ? DimTempo
-ValorDividendos;DECIMAL(18,4);Valor absoluto do dividendo pago
-DividendYield;DECIMAL(8,4);Percentual de rendimento por dividendo
+Campo ,Tipo de Dado,DescriÃ§Ã£o
+EmpresaID (PK),INT,Identificador Ãºnico da empresa no banco
+Symbol,VARCHAR(10),CÃ³digo da aÃ§Ã£o (ticker)
+Nome,VARCHAR(100),Nome da empresa
+Setor,VARCHAR(50),Setor econÃ´mico (GICS Sector)
+SubSetor,VARCHAR(100),Subsetor econÃ´mico (GICS Sub-Industry)
+Localizacao,VARCHAR(100),LocalizaÃ§Ã£o da sede da empresa
+DataEntradaIndice,DATE,Data de inclusÃ£o da empresa no Ã­ndice S&P 500
+CIK,INT,Identificador Ãºnico da empresa na SEC (U.S. Securities and Exchange Comm.)
+AnoFundacao,VARCHAR(10),"Ano de fundaÃ§Ã£o da empresa (Ã s vezes histÃ³rico contÃ©m intervalo ex: ""2013 (1888)"")"
+TempoID (PK),INT,Identificador Ãºnico do tempo
+Data,DATE,Data do registro
+Ano,INT,Ano da data
+Mes,INT,MÃªs (1â€“12)
+Trimestre,INT,Trimestre (1â€“4)
+DiaSemana,VARCHAR(15),Dia da semana (Segunda, TerÃ§a, etc.)
+EhFeriado,BIT,Indica se foi feriado/mercado fechado (0 = nÃ£o, 1 = sim)
+IndiceID (PK),INT,Identificador Ãºnico do Ã­ndice
+NomeIndice,VARCHAR(50),Nome do Ã­ndice (ex: S&P 500)
+Descricao,VARCHAR(200),Breve descriÃ§Ã£o sobre o Ã­ndice
+PrecoID (PK),BIGINT,Identificador Ãºnico do preÃ§o registrado
+EmpresaID (FK),INT,Chave estrangeira ? DimEmpresa
+TempoID (FK),INT,Chave estrangeira ? DimTempo
+Open,DECIMAL(18,4),PreÃ§o de abertura da aÃ§Ã£o
+High,DECIMAL(18,4),Maior preÃ§o atingido no dia
+Low,DECIMAL(18,4),Menor preÃ§o atingido no dia
+Close,DECIMAL(18,4),PreÃ§o de fechamento
+Volume,BIGINT,Quantidade de aÃ§Ãµes negociadas
+IndiceRegistroID (PK),BIGINT,Identificador Ãºnico do registro do Ã­ndice
+IndiceID (FK),INT,Chave estrangeira ? DimIndice
+TempoID (FK),INT,Chave estrangeira ? DimTempo
+ValorFechamento,DECIMAL(18,4),Valor de fechamento diÃ¡rio do Ã­ndice S&P500
+DividendoID (PK),BIGINT,Identificador Ãºnico do registro de dividendo
+EmpresaID (FK),INT,Chave estrangeira ? DimEmpresa
+TempoID (FK),INT,Chave estrangeira ? DimTempo
+ValorDividendos,DECIMAL(18,4),Valor absoluto do dividendo pago
+DividendYield,DECIMAL(8,4),Percentual de rendimento por dividendo
