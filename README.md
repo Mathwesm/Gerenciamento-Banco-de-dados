@@ -46,5 +46,5 @@
 ## Planejamento
 - [Planner](https://trello.com/invite/b/KkIiciFk/ATTIc77290b98b15e3589e6f2e7ea4d9dad3915E3CA4/gest-o-de-tarefas-scrum)
 - [Modelo Conceitual](doc/modelo-conceitual.drawio.svg)
-- [Modelo Lógico](doc/modelo-logico.drawio.svg)
-  <!-- [Modelo Físico]() -->
+- [Modelo Lógico](doc/ModeloLogico.svg)
+- [Modelo Físico](doc/ModeloFisico.svg)
