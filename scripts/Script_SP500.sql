@@ -1,4 +1,3 @@
-use datasets
 
 IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'Indice')
     CREATE TABLE Indice (
@@ -88,3 +87,4 @@ IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'Dividendos')
     FOREIGN KEY(idCIK) REFERENCES Empresas(CIK),
     FOREIGN KEY(idTempo) REFERENCES Tempo(idTempo)
     )
+
