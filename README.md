@@ -141,7 +141,7 @@ O gerenciamento do projeto é feito através do **Trello** utilizando metodologi
 
 ## Tecnologias Utilizadas
 
-- **Banco de Dados**: SQL (MySQL/PostgreSQL/SQL Server)
+- **Banco de Dados**: SQL Server
 - **Modelagem**: Data Warehouse (Esquema Estrela/Floco de Neve)
 - **Visualização de Modelos**: Draw.io, ferramentas de modelagem ER
 - **Gerenciamento de Projeto**: Trello (Metodologia SCRUM)
