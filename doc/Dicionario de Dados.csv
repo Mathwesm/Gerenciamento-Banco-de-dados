@@ -1,0 +1,40 @@
+Tabela;Campo;Tipo de Dado;Tamanho;PK;FK;Descrição
+Empresa;CIK;INT;;PK;;Identificador único da empresa
+Empresa;Nome;NVARCHAR;80;;;Nome da empresa
+Empresa;Setor;VARCHAR;80;;;Setor econômico da empresa
+Empresa;DataEntrada;DATA;;;;Data de entrada no mercado
+Empresa;AnoFundacao;SMALLINT;;;;Ano de fundação da empresa
+Empresa;Security;NVARCHAR;80;;;Informações de segurança
+SubSetor;Id_SubSetor;INT;;PK;;Identificador do sub-setor
+SubSetor;Fk_CIK;INT;;;FK Empresa;Referência à empresa
+SubSetor;Industry;NVARCHAR;80;;;Indústria do sub-setor
+Localizacao;Id_localizacao;INT;;PK;;Identificador da localização
+Localizacao;Fk_CIK;INT;;;FK Empresa;Referência à empresa
+Localizacao;Estado;VARCHAR;30;;;Estado da empresa
+Localizacao;Regiao;VARCHAR;80;;;Região da empresa
+Preco_Acao;Id_preco_acao;INT;;PK;;Identificador do preço da ação
+Preco_Acao;EmpresaID;INT;;;FK Empresa;Identificador da empresa associada
+Preco_Acao;ID_Tempo;INT;;;FK Tempo;Referência à tabela de tempo
+Preco_Acao;Open;DECIMAL;8,6;;;Preço de abertura
+Preco_Acao;High;DECIMAL;8,6;;;Preço mais alto
+Preco_Acao;Low;DECIMAL;8,6;;;Preço mais baixo
+Preco_Acao;Close;DECIMAL;8,6;;;Preço de fechamento
+Preco_Acao;Volume;INT;;;;Volume negociado
+Dividendos;ID_Dividendo;INT;;PK;;Identificador do dividendo
+Dividendos;ID_CIK;INT;;;FK Empresa;Referência à empresa
+Dividendos;ID_Tempo;INT;;;FK Tempo;Referência à data do pagamento
+Dividendos;Valor_Dividendos;INT;;;;Valor do dividendo pago
+Tempo;ID_Tempo;INT;;PK;;Identificador do tempo
+Tempo;ID_IndiceSP500;INT;;;FK IndiceSP500;Referência ao índice SP500
+Tempo;ID_Preco_Acao;INT;;;FK Preco_Acao;Referência ao preço da ação
+Tempo;Data_completa;DATA;;;;Data completa
+Tempo;Ano;SMALLINT;;;;Ano da data
+Tempo;Mes;TINYINT;;;;Mês da data
+Tempo;Trimestre;TINYINT;;;;Trimestre da data
+Tempo;Dia_semana;TINYINT;;;;Dia da semana
+IndiceSP500;Id_SP500;INT;;PK;;Identificador do índice SP500
+IndiceSP500;ID_Indice;INT;;;FK Indice;Referência ao índice geral
+IndiceSP500;ValorFechamento;DECIMAL;8,6;;;Valor de fechamento do índice
+Indice;Id_Indice;INT;;PK;;Identificador do índice
+Indice;NomeIndice;NVARCHAR;80;;;Nome do índice
+Indice;Descricao;NVARCHAR;80;;;Descrição do índice
