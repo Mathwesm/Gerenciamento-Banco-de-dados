@@ -1,86 +1,159 @@
-IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'SP500Companies')
-    CREATE TABLE  SP500Companies ( -- TODO alterar a tipagem dos dados
-        "Symbol" VARCHAR(10),
-        "Security" VARCHAR(255),
-        "Sector" VARCHAR(100),
-        "SubIndustry" VARCHAR(100),
-        "place" VARCHAR(255),
-        "Date Added" VARCHAR(100),
-        "CIK" VARCHAR(100),
-        "Founded" VARCHAR(50)
+CREATE DATABASE datasets
+
+GO
+
+use datasets
+
+GO
+
+BEGIN TRY
+    BEGIN TRANSACTION
+    
+    IF NOT EXISTS (
+        SELECT 1
+FROM sys.tables
+WHERE name = 'SP500_companies'
+    AND schema_id = SCHEMA_ID('dbo')
     )
-
-GO
-
-IF (SELECT COUNT(1) FROM SP500Companies) = 0
-    BULK INSERT SP500Companies
-    FROM '/datasets/SP500-companies.csv'
-    WITH (
-        FORMAT = 'CSV',
-        FIRSTROW = 2
+    BEGIN
+    CREATE TABLE "SP500_companies"
+    (
+        registro NVARCHAR(MAX)
     )
+END
+    ELSE
+    BEGIN
+    PRINT 'Tabele SP500_companies já existe.'
+END
+    BEGIN TRY
+        BULK INSERT SP500_companies
+        FROM '/datasets/S&P-500-companies.csv'
+        WITH (
+            FIRSTROW = 2,
+            FIELDTERMINATOR = '\n',
+            ROWTERMINATOR = '\n',
+            DATAFILETYPE = 'char'
+        );
+    END TRY
+    BEGIN CATCH
+        PRINT 'Erro ao carregar o arquivo CSV';
+        THROW
+    END CATCH
+    PRINT 'Dados importados';
+
+    COMMIT TRANSACTION
+END TRY
+BEGIN CATCH
+    PRINT 'Ocorreu um erro';
+    ROLLBACK TRANSACTION;
+
+    PRINT ERROR_MESSAGE();
+END CATCH;
 
 GO
 
-IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'SP500')
-CREATE TABLE SP500 (
-    "Observation Date" DATE,
-    "SP500" MONEY
-)
-
-GO
-
-IF (SELECT COUNT(1) FROM SP500) = 0
-    BULK INSERT SP500
-    FROM '/datasets/SP500-fred.csv'
-    WITH (
-        FORMAT = 'CSV',
-        FIRSTROW = 2
+BEGIN TRY
+    BEGIN TRANSACTION
+    
+    IF NOT EXISTS (
+        SELECT 1
+FROM sys.tables
+WHERE name = 'SP500_fred'
+    AND schema_id = SCHEMA_ID('dbo')
     )
+    BEGIN
+    CREATE TABLE SP500_fred
+    (
+        registro NVARCHAR(MAX)
+    )
+END
+    ELSE
+    BEGIN
+    PRINT 'Tabele SP500_fred já existe.'
+END
+    BEGIN TRY
+        BULK INSERT SP500_fred
+        FROM '/datasets/S&P500-fred.csv'
+        WITH (
+            FIRSTROW = 2,
+            FIELDTERMINATOR = '\n',
+            ROWTERMINATOR = '\n',
+            DATAFILETYPE = 'char'
+        );
+    END TRY
+    BEGIN CATCH
+        PRINT 'Erro ao carregar o arquivo CSV';
+        THROW
+    END CATCH
+    PRINT 'Dados importados';
+
+    COMMIT TRANSACTION
+END TRY
+BEGIN CATCH
+    PRINT 'Ocorreu um erro';
+    ROLLBACK TRANSACTION;
+
+    PRINT ERROR_MESSAGE();
+END CATCH;
 
 GO
 
-IF NOT EXISTS (
-    SELECT 1 
-    FROM INFORMATION_SCHEMA.COLUMNS 
-    WHERE TABLE_SCHEMA = 'dbo'
-      AND TABLE_NAME = 'SP500Companies'
-      AND COLUMN_NAME = 'country'
-)
-ALTER TABLE SP500Companies ADD
-    country NVARCHAR(100)
+BEGIN TRY
+    BEGIN TRANSACTION
+    
+    IF NOT EXISTS (
+        SELECT 1
+FROM sys.tables
+WHERE name = 'CSI500'
+    AND schema_id = SCHEMA_ID('dbo')
+    )
+    BEGIN
+    CREATE TABLE CSI500
+    (
+        registro NVARCHAR(MAX)
+    )
+END
+    ELSE
+    BEGIN
+    PRINT 'Tabele CSI500 já existe.'
+END
+    BEGIN TRY
+        BULK INSERT CSI500
+        FROM '/datasets/CSI500-part-1.csv'
+        WITH (
+            FIRSTROW = 2,
+            FIELDTERMINATOR = '\n',
+            ROWTERMINATOR = '\n',
+            DATAFILETYPE = 'char'
+        );
+    END TRY
+    BEGIN CATCH
+        PRINT 'Erro ao carregar o arquivo CSV';
+        THROW
+    END CATCH
+    PRINT 'Dados importados';
 
-GO
+     BEGIN TRY
+        BULK INSERT CSI500
+        FROM '/datasets/CSI500-part-2.csv'
+        WITH (
+            FIRSTROW = 2,
+            FIELDTERMINATOR = '\n',
+            ROWTERMINATOR = '\n',
+            DATAFILETYPE = 'char'
+        );
+    END TRY
+    BEGIN CATCH
+        PRINT 'Erro ao carregar o arquivo CSV';
+        THROW
+    END CATCH
+    PRINT 'Dados importados';
 
-IF NOT EXISTS (
-    SELECT 1 
-    FROM INFORMATION_SCHEMA.COLUMNS 
-    WHERE TABLE_SCHEMA = 'dbo'
-      AND TABLE_NAME = 'SP500Companies'
-      AND COLUMN_NAME = 'state'
-)
-ALTER TABLE SP500Companies ADD
-    state NVARCHAR(100);
+    COMMIT TRANSACTION
+END TRY
+BEGIN CATCH
+    PRINT 'Ocorreu um erro';
+    ROLLBACK TRANSACTION;
 
-GO
-
-WITH LocationParts AS ( -- separa os dados da coluna 'place' para country e state
-    SELECT 
-        c.Symbol,
-        country = LTRIM(RTRIM(MIN(CASE WHEN p.ordinal = 1 THEN p.value END))),
-        state   = LTRIM(RTRIM(MIN(CASE WHEN p.ordinal = 2 THEN p.value END)))
-    FROM SP500Companies AS c
-    CROSS APPLY STRING_SPLIT(c.place, ',', 1) AS p
-    GROUP BY c.Symbol
-)
-UPDATE c
-SET
-    c.country = lp.country,
-    c.state   = lp.state
-FROM SP500Companies AS c
-JOIN LocationParts AS lp ON c.Symbol = lp.Symbol;
-
-GO
-
-IF EXISTS(SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'SP500Companies' AND COLUMN_NAME = 'place')
-    ALTER TABLE SP500Companies DROP COLUMN place
+    PRINT ERROR_MESSAGE();
+END CATCH;
