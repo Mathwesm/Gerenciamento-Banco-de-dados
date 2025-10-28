@@ -52,13 +52,15 @@ IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'precoAcao')
     CREATE TABLE precoAcao (
     idPrecoAcao int not null,
     EmpresasId int not null,
+    idTempo int not null,
     "Open" decimal(8,6),
     High decimal(8,6),
     Low decimal(8,6),
     "Close" decimal(8,6),
     Volume int,
     primary key(idPrecoAcao),
-    FOREIGN key(EmpresasId) REFERENCES Empresas(CIK)
+    FOREIGN key(EmpresasId) REFERENCES Empresas(CIK),
+    FOREIGN key(idTempo) REFERENCES Empresas(idTempo)
     )
 
 IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'Tempo')
