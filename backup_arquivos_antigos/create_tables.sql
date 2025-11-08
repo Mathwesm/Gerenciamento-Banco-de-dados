@@ -53,40 +53,42 @@ IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'precoAcao')
     idPrecoAcao int not null,
     EmpresasId int not null,
     idTempo int not null,
-    "Open" decimal(8,6),
+    [Open] decimal(8,6),
     High decimal(8,6),
     Low decimal(8,6),
-    "Close" decimal(8,6),
+    [Close] decimal(8,6),
     Volume int,
     primary key(idPrecoAcao),
-    FOREIGN key(EmpresasId) REFERENCES Empresas(CIK),
-    FOREIGN key(idTempo) REFERENCES Empresas(idTempo)
+    FOREIGN key(EmpresasId) REFERENCES Empresas(CIK)
     )
 
 IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'Tempo')
     CREATE TABLE Tempo (
     idTempo int not null,
     idIndiceSP500 int not null,
-    idPrecoAcao int not null,
     DataCompleta date,
     ano smallint,
     mes tinyint,
     trimestre tinyint,
     dia_semana tinyint,
     PRIMARY KEY(idTempo),
-    FOREIGN KEY(idIndiceSP500) REFERENCES indiceSP500(idSP500),
-    FOREIGN KEY(idPrecoAcao) REFERENCES precoAcao(idPrecoAcao)
+    FOREIGN KEY(idIndiceSP500) REFERENCES indiceSP500(idSP500)
     )
 
 IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'Dividendos')
     CREATE TABLE Dividendos (
     IdDividendo int not null,
-    idCIK int, 
+    idCIK int,
     idTempo int,
     ValorDividendos int
-    
+
     PRIMARY KEY(IdDividendo),
     FOREIGN KEY(idCIK) REFERENCES Empresas(CIK),
     FOREIGN KEY(idTempo) REFERENCES Tempo(idTempo)
     )
+
+-- Adicionar foreign key de idTempo na tabela precoAcao após a criação das tabelas
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_precoAcao_Tempo')
+    ALTER TABLE precoAcao
+    ADD CONSTRAINT FK_precoAcao_Tempo FOREIGN KEY (idTempo) REFERENCES Tempo(idTempo)
 

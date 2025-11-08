@@ -1,7 +1,3 @@
-CREATE DATABASE datasets
-
-GO
-
 use datasets
 
 GO
@@ -16,7 +12,7 @@ WHERE name = 'SP500_companies'
     AND schema_id = SCHEMA_ID('dbo')
     )
     BEGIN
-    CREATE TABLE "SP500_companies"
+    CREATE TABLE SP500_companies
     (
         registro NVARCHAR(MAX)
     )
