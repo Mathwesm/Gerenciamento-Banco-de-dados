@@ -5,6 +5,9 @@
 
 $ErrorActionPreference = "Stop"
 
+# Navegar para o diretório raiz do projeto
+Set-Location (Join-Path $PSScriptRoot "..")
+
 Write-Host "=========================================" -ForegroundColor Cyan
 Write-Host "SETUP AUTOMATIZADO DO PROJETO" -ForegroundColor Cyan
 Write-Host "=========================================" -ForegroundColor Cyan
@@ -43,7 +46,7 @@ Write-Host ""
 # ========================================
 Write-Host "[2/7] Iniciando container Docker..." -ForegroundColor Yellow
 
-docker compose down 2>$null
+docker compose down -v 2>$null
 docker compose up -d
 
 Write-Host "✓ Container iniciado" -ForegroundColor Green

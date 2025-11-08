@@ -1,11 +1,14 @@
 #!/bin/bash
 
-# ========================================
+# ========================================'z
 # SCRIPT DE SETUP AUTOMATIZADO
 # Executa todos os passos do zero
 # ========================================
 
 set -e  # Parar em caso de erro
+
+# Navegar para o diretório raiz do projeto
+cd "$(dirname "$0")/.."
 
 echo "========================================="
 echo "SETUP AUTOMATIZADO DO PROJETO"
@@ -46,7 +49,7 @@ echo ""
 # ========================================
 echo -e "${YELLOW}[2/7] Iniciando container Docker...${NC}"
 
-docker compose down 2>/dev/null || true
+docker compose down -v 2>/dev/null || true
 docker compose up -d
 
 echo -e "${GREEN}✓ Container iniciado${NC}"
