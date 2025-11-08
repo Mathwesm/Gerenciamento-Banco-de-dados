@@ -1,159 +1,79 @@
-CREATE DATABASE datasets
+CREATE TABLE CSI500_import
+(
+    codigo_empresa NVARCHAR(100),
+    data_cotacao NVARCHAR(100),
+    preco_abertura NVARCHAR(100),
+    preco_maximo NVARCHAR(100),
+    preco_minimo NVARCHAR(100),
+    preco_fechamento NVARCHAR(100),
+    volume NVARCHAR(100),
+    amount NVARCHAR(100),
+    outstanding_share NVARCHAR(100),
+    turnover NVARCHAR(100),
+    nome_empresa_en NVARCHAR(200),
+    region_en NVARCHAR(100),
+    industry_en NVARCHAR(100),
+    subindustry_en NVARCHAR(100)
+);
 
-GO
 
-use datasets
+CREATE TABLE sp500companies_import
+(
+    Symbol VARCHAR(20),
+    Security NVARCHAR(100),
+    GICSSector NVARCHAR(100),
+    GICSSubIndustry NVARCHAR(100),
+    HeadquartersLocation NVARCHAR(100),
+    DateAdded NVARCHAR(20),
+    CIK NVARCHAR(20),
+    Founded NVARCHAR(50)
+);
 
-GO
 
-BEGIN TRY
-    BEGIN TRANSACTION
-    
-    IF NOT EXISTS (
-        SELECT 1
-FROM sys.tables
-WHERE name = 'SP500_companies'
-    AND schema_id = SCHEMA_ID('dbo')
-    )
-    BEGIN
-    CREATE TABLE "SP500_companies"
-    (
-        registro NVARCHAR(MAX)
-    )
-END
-    ELSE
-    BEGIN
-    PRINT 'Tabele SP500_companies já existe.'
-END
-    BEGIN TRY
-        BULK INSERT SP500_companies
-        FROM '/datasets/S&P-500-companies.csv'
-        WITH (
-            FIRSTROW = 2,
-            FIELDTERMINATOR = '\n',
-            ROWTERMINATOR = '\n',
-            DATAFILETYPE = 'char'
-        );
-    END TRY
-    BEGIN CATCH
-        PRINT 'Erro ao carregar o arquivo CSV';
-        THROW
-    END CATCH
-    PRINT 'Dados importados';
 
-    COMMIT TRANSACTION
-END TRY
-BEGIN CATCH
-    PRINT 'Ocorreu um erro';
-    ROLLBACK TRANSACTION;
+CREATE TABLE sp500fred_import
+(
+    Data NVARCHAR(20),
+    ClosePrice NVARCHAR(20)
+);
 
-    PRINT ERROR_MESSAGE();
-END CATCH;
+BULK INSERT sp500companies_import
+FROM '/datasets/S&P-500-companies.csv'
+WITH (
+    FIRSTROW = 2,
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    TABLOCK,
+    FORMAT='CSV'
+);
 
-GO
+BULK INSERT CSI500_import
+FROM '/datasets/CSI500-part-1.csv'
+WITH (
+    FIRSTROW = 2,
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    TABLOCK,
+    FORMAT='CSV'
+);
 
-BEGIN TRY
-    BEGIN TRANSACTION
-    
-    IF NOT EXISTS (
-        SELECT 1
-FROM sys.tables
-WHERE name = 'SP500_fred'
-    AND schema_id = SCHEMA_ID('dbo')
-    )
-    BEGIN
-    CREATE TABLE SP500_fred
-    (
-        registro NVARCHAR(MAX)
-    )
-END
-    ELSE
-    BEGIN
-    PRINT 'Tabele SP500_fred já existe.'
-END
-    BEGIN TRY
-        BULK INSERT SP500_fred
-        FROM '/datasets/S&P500-fred.csv'
-        WITH (
-            FIRSTROW = 2,
-            FIELDTERMINATOR = '\n',
-            ROWTERMINATOR = '\n',
-            DATAFILETYPE = 'char'
-        );
-    END TRY
-    BEGIN CATCH
-        PRINT 'Erro ao carregar o arquivo CSV';
-        THROW
-    END CATCH
-    PRINT 'Dados importados';
+BULK INSERT CSI500_import
+FROM '/datasets/CSI500-part-2.csv'
+WITH (
+    FIRSTROW = 2,
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    TABLOCK,
+    FORMAT='CSV'
+);
 
-    COMMIT TRANSACTION
-END TRY
-BEGIN CATCH
-    PRINT 'Ocorreu um erro';
-    ROLLBACK TRANSACTION;
 
-    PRINT ERROR_MESSAGE();
-END CATCH;
-
-GO
-
-BEGIN TRY
-    BEGIN TRANSACTION
-    
-    IF NOT EXISTS (
-        SELECT 1
-FROM sys.tables
-WHERE name = 'CSI500'
-    AND schema_id = SCHEMA_ID('dbo')
-    )
-    BEGIN
-    CREATE TABLE CSI500
-    (
-        registro NVARCHAR(MAX)
-    )
-END
-    ELSE
-    BEGIN
-    PRINT 'Tabele CSI500 já existe.'
-END
-    BEGIN TRY
-        BULK INSERT CSI500
-        FROM '/datasets/CSI500-part-1.csv'
-        WITH (
-            FIRSTROW = 2,
-            FIELDTERMINATOR = '\n',
-            ROWTERMINATOR = '\n',
-            DATAFILETYPE = 'char'
-        );
-    END TRY
-    BEGIN CATCH
-        PRINT 'Erro ao carregar o arquivo CSV';
-        THROW
-    END CATCH
-    PRINT 'Dados importados';
-
-     BEGIN TRY
-        BULK INSERT CSI500
-        FROM '/datasets/CSI500-part-2.csv'
-        WITH (
-            FIRSTROW = 2,
-            FIELDTERMINATOR = '\n',
-            ROWTERMINATOR = '\n',
-            DATAFILETYPE = 'char'
-        );
-    END TRY
-    BEGIN CATCH
-        PRINT 'Erro ao carregar o arquivo CSV';
-        THROW
-    END CATCH
-    PRINT 'Dados importados';
-
-    COMMIT TRANSACTION
-END TRY
-BEGIN CATCH
-    PRINT 'Ocorreu um erro';
-    ROLLBACK TRANSACTION;
-
-    PRINT ERROR_MESSAGE();
-END CATCH;
+BULK INSERT sp500fred_import
+FROM '/datasets/S&P500-fred.csv'
+WITH (
+    FIRSTROW = 2,
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    TABLOCK,
+    FORMAT='CSV'
+);
