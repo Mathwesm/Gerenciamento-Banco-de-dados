@@ -8,23 +8,59 @@ Avaliar a situação do mercado financeiro americano (S&P 500) e chinês (CSI 50
 
 ## 🚀 Como Começar (Setup Completo)
 
-### **PASSO 1** - Setup Inicial
+### 📌 Escolha seu Sistema Operacional
 
-Cria databases, tabelas e importa dados brutos dos CSVs:
+#### 🐧 **LINUX/MAC**
 
+Entre na pasta Linux:
 ```bash
+cd scripts-linux
+```
+
+Execute os scripts:
+```bash
+./1_setup_automatico.sh    # PASSO 1: Setup inicial
+./2_processar_etl.sh       # PASSO 2: Processar dados (ETL)
+./3_visualizar.sh          # PASSO 3: Visualizar dados (opcional)
+./4_limpar.sh              # PASSO 4: Limpar/resetar (opcional)
+```
+
+**Se der erro de permissão:**
+```bash
+chmod +x *.sh
 ./1_setup_automatico.sh
 ```
 
-### **PASSO 2** - Processar Dados (ETL)
+---
 
-Processa os dados brutos e popula as tabelas do master:
+#### 🪟 **WINDOWS**
 
-```bash
-./2_processar_etl.sh
+Entre na pasta Windows:
+```powershell
+cd scripts-windows
 ```
 
-Este script vai:
+Execute os scripts:
+```powershell
+.\1_setup_automatico.ps1    # PASSO 1: Setup inicial
+.\2_processar_etl.ps1       # PASSO 2: Processar dados (ETL)
+.\3_visualizar.ps1          # PASSO 3: Visualizar dados (opcional)
+.\4_limpar.ps1              # PASSO 4: Limpar/resetar (opcional)
+```
+
+**Se der erro de política de execução:**
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\1_setup_automatico.ps1
+```
+
+---
+
+### 📝 O que cada script faz:
+
+**PASSO 1 - Setup Inicial**: Cria databases, tabelas e importa dados brutos dos CSVs
+
+**PASSO 2 - Processar Dados (ETL)**: Processa dados brutos e popula tabelas do master
 - ✅ Fazer parse dos dados CSV (separar colunas)
 - ✅ Popular tabela Empresas com dados do S&P 500
 - ✅ Popular SubSetor e Localizacao
@@ -32,17 +68,9 @@ Este script vai:
 - ✅ Popular dimensão Tempo
 - ✅ Verificar duplicatas automaticamente
 
-### **PASSO 3** - Visualizar Dados (Opcional)
+**PASSO 3 - Visualizar Dados**: Mostra os dados de todas as tabelas
 
-```bash
-./3_visualizar.sh
-```
-
-### **PASSO 4** - Limpar/Resetar (Opcional)
-
-```bash
-./4_limpar.sh
-```
+**PASSO 4 - Limpar/Resetar**: Menu interativo para limpar ou resetar o banco
 
 ---
 
@@ -71,13 +99,20 @@ Gerenciamento-Banco-de-dados_v2/
 │
 ├── compose.yaml                        # Configuração Docker
 │
-├── 1_setup_automatico.sh              # ⭐ PASSO 1: Setup inicial
-├── 2_processar_etl.sh                 # ⭐ PASSO 2: Processar dados (ETL)
-├── 3_visualizar.sh                    # 👁️  PASSO 3: Visualizar tabelas
-├── 4_limpar.sh                        # 🧹 PASSO 4: Limpar/resetar
-│
 ├── README.md                          # Este arquivo
 ├── COMECE_AQUI.md                     # Guia de início rápido
+│
+├── scripts-linux/                     # 🐧 Scripts para Linux/Mac
+│   ├── 1_setup_automatico.sh          # ⭐ PASSO 1: Setup inicial
+│   ├── 2_processar_etl.sh             # ⭐ PASSO 2: Processar dados (ETL)
+│   ├── 3_visualizar.sh                # 👁️  PASSO 3: Visualizar tabelas
+│   └── 4_limpar.sh                    # 🧹 PASSO 4: Limpar/resetar
+│
+├── scripts-windows/                   # 🪟 Scripts para Windows
+│   ├── 1_setup_automatico.ps1         # ⭐ PASSO 1: Setup inicial
+│   ├── 2_processar_etl.ps1            # ⭐ PASSO 2: Processar dados (ETL)
+│   ├── 3_visualizar.ps1               # 👁️  PASSO 3: Visualizar tabelas
+│   └── 4_limpar.ps1                   # 🧹 PASSO 4: Limpar/resetar
 │
 ├── datasets/                          # Arquivos CSV
 │   ├── S&P-500-companies.csv
@@ -85,7 +120,7 @@ Gerenciamento-Banco-de-dados_v2/
 │   ├── CSI500-part-1.csv
 │   └── CSI500-part-2.csv
 │
-├── scripts/
+├── scripts/                           # Scripts SQL
 │   ├── 1-setup/                       # Scripts de configuração
 │   │   ├── 01_setup_completo.sql      # Cria databases e tabelas
 │   │   └── 02_processar_dados_etl.sql # ETL (processar e popular)
@@ -195,8 +230,12 @@ EOF"
 
 ### Visualizar Dados das Tabelas
 ```bash
-# Visualizar todas as tabelas e análises
-./3_visualizar.sh
+# Linux/Mac
+cd scripts-linux && ./3_visualizar.sh
+
+# Windows
+cd scripts-windows
+.\3_visualizar.ps1
 
 # Ou execute no DataGrip:
 # scripts/2-consultas/visualizar_tabelas.sql
@@ -204,8 +243,12 @@ EOF"
 
 ### Limpar/Resetar Dados
 ```bash
-# Menu interativo de limpeza
-./4_limpar.sh
+# Linux/Mac
+cd scripts-linux && ./4_limpar.sh
+
+# Windows
+cd scripts-windows
+.\4_limpar.ps1
 
 # Opção 1: Limpar apenas dados (mantém estrutura)
 # Opção 2: Resetar tudo do zero (remove tudo)
@@ -235,7 +278,10 @@ EOF"
 
 ## 🔄 Fluxo Completo de Uso
 
+### Linux/Mac
 ```bash
+cd scripts-linux
+
 # PASSO 1: Setup inicial (primeira vez)
 ./1_setup_automatico.sh
 
@@ -249,6 +295,25 @@ EOF"
 
 # Se precisar resetar:
 ./4_limpar.sh  # Escolher opção desejada
+```
+
+### Windows
+```powershell
+cd scripts-windows
+
+# PASSO 1: Setup inicial (primeira vez)
+.\1_setup_automatico.ps1
+
+# PASSO 2: Processar dados (ETL)
+.\2_processar_etl.ps1
+
+# PASSO 3: Visualizar dados (opcional)
+.\3_visualizar.ps1
+
+# PASSO 4: Configurar DataGrip e executar análises
+
+# Se precisar resetar:
+.\4_limpar.ps1  # Escolher opção desejada
 ```
 
 ---
