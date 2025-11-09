@@ -8,7 +8,6 @@ services:
         tmpfs:
           size: 134217728 # 128*2^20 bytes = 128Mb
     container_name: sqlserverCC
-    command: sh -c ' chmod +x /scripts/entrypoint.sh; ./scripts/entrypoint.sh & /opt/mssql/bin/sqlservr;'
     ports:
         - 1433:1433
     environment:

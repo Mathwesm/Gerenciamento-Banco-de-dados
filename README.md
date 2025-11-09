@@ -1,156 +1,235 @@
-# Gerenciamento Banco de Dados - Análise Mercado Financeiro
+# 📊 Sistema de Análise Financeira - S&P 500 & CSI500
 
-## Objetivo
+> Sistema completo de gerenciamento e análise de dados financeiros usando SQL Server 2022 no Docker
 
-<p align="center">
-  O objetivo é avaliar a situação do mercado financeiro americano e chinês em situações de crise econômica.<br />
-  Usando essa avaliação para prever como o mercado irá se portar em futuras situações de crise.<br />
-</p>
+[![SQL Server](https://img.shields.io/badge/SQL%20Server-2022-red)](https://www.microsoft.com/sql-server)
+[![Docker](https://img.shields.io/badge/Docker-Required-blue)](https://www.docker.com/)
 
 ---
 
-## Índice
-- [Objetivo](#objetivo)
-- [Perguntas de Negócio](#perguntas)
-- [Datasets](#datasets)
-- [Modelagem de Dados](#modelagem-de-dados)
-- [Estrutura do Projeto](#estrutura-do-projeto)
-- [Como Usar](#como-usar)
-- [Planejamento](#planejamento)
-- [Tecnologias Utilizadas](#tecnologias-utilizadas)
-- [Contribuidores](#contribuidores)
+## 📋 Índice
 
-## Perguntas
-- Quais ações tiveram maior valorização percentual no último ano?
+- [Visão Geral](#-visão-geral)
+- [Quick Start](#-quick-start)
+- [Estrutura do Projeto](#-estrutura-do-projeto)
+- [Databases](#-databases)
+- [Análises Disponíveis](#-análises-disponíveis)
+- [Uso](#-uso)
+- [Troubleshooting](#-troubleshooting)
 
-- Qual é a volatilidade média das ações por setor ou indústria?
+---
 
-- Quais empresas registraram maior volume de negociação em determinado período?
+## 🎯 Visão Geral
 
-- Quais ações apresentaram crescimento consistente ao longo dos últimos 5 anos?
+Sistema de banco de dados para análise de **~1.3 milhões de registros** de dados financeiros:
+- **500 empresas** do S&P 500
+- **479 empresas** do mercado chinês (CSI500)
+- **Período:** 2015-09-09 a 2025-11-07
+- **6 views analíticas** prontas para uso
 
-- Quais setores apresentam melhor desempenho médio no índice S&P 500?
+### ✨ Funcionalidades
 
-- Quais ações sofreram maior queda em períodos de crise econômica? (Covid)
+- ✅ Setup automatizado com um comando
+- ✅ ETL completo de dados brutos para modelo dimensional
+- ✅ 6 views de análise prontas
+- ✅ Scripts de análise para perguntas de negócio
+- ✅ Suporte Linux e Windows
 
-- Qual é o retorno médio de dividendos por setor e por empresa?
+---
 
-
-## Datasets
-
-### Mercado Americano (S&P 500)
-- **S&P 500 Index Data**
-  - [Fonte oficial](https://fred.stlouisfed.org/series/SP500)
-  - [CSV](datasets/S&P500-fred.csv)
-
-- **S&P 500 Companies**
-  - [Fonte oficial](https://github.com/datasets/s-and-p-500-companies/blob/main/data/constituents.csv)
-  - [CSV](datasets/S&P-500-companies.csv)
-
-### Mercado Chinês (CSI 500)
-- **CSI 500 Stock Data Consolidado**
-  - Dados históricos consolidados de ações do índice CSI 500
-  - [Parte 1](datasets/csi500_consolidado_parte1.csv) (865k+ registros)
-  - [Parte 2](datasets/csi500_consolidado_parte2.csv)
-
-## Modelagem de Dados
-
-O projeto utiliza modelagem dimensional (Data Warehouse) com os seguintes modelos para cada mercado:
-
-### Mercado Americano (S&P 500)
-- **[Modelo Conceitual](doc/SP500/Modelo-Conceitual-SP500.svg)** - Visão geral das entidades e relacionamentos
-- **[Modelo Lógico](doc/SP500/Modelo-Logico-SP500.svg)** - Estrutura lógica das tabelas
-- **[Modelo Físico](doc/SP500/Modelo-Fisico-SP500.svg)** - Implementação física no banco de dados
-
-### Mercado Chinês (CSI 500)
-- **[Modelo Conceitual](doc/CSI500/Modelo-Conceitual-CSI500.png)** - Visão geral das entidades e relacionamentos
-- **[Modelo Lógico](doc/CSI500/Modelo-logico-CSI500.png)** - Estrutura lógica das tabelas
-- **[Modelo Físico](doc/CSI500/Modelo-Fisico-CSI500.png)** - Implementação física no banco de dados
-
-### Dicionário de Dados
-O projeto possui um [dicionário de dados completo](doc/dicionario-de-dados.csv) descrevendo:
-- Todas as tabelas (dimensões e fatos)
-- Tipos de dados de cada campo
-- Descrição detalhada de cada coluna
-- Relacionamentos entre tabelas
-
-## Estrutura do Projeto
-
-```
-├── datasets/                           # Datasets do projeto
-│   ├── S&P500-fred.csv                 # Dados históricos do índice S&P 500
-│   ├── S&P-500-companies.csv           # Lista de empresas do S&P 500
-│   ├── csi500_consolidado_parte1.csv   # Dados CSI 500 (Parte 1 - 865k+ registros)
-│   └── csi500_consolidado_parte2.csv   # Dados CSI 500 (Parte 2)
-├── doc/                                # Documentação e modelos
-│   ├── SP500/                          # Modelos do mercado americano
-│   │   ├── Modelo-Conceitual-SP500.svg
-│   │   ├── Modelo-Logico-SP500.svg
-│   │   └── Modelo-Fisico-SP500.svg
-│   ├── CSI500/                         # Modelos do mercado chinês
-│   │   ├── Modelo-Conceitual-CSI500.png
-│   │   ├── Modelo-logico-CSI500.png
-│   │   └── Modelo-Fisico-CSI500.png
-│   └── dicionario-de-dados.csv         # Dicionário de dados completo
-├── scripts/                            # Scripts SQL
-│   ├── create_datasets.sql             # Criação das tabelas
-│   └── Script_SP500.sql                # Queries de análise S&P 500
-└── README.md                           # Documentação do projeto
-```
-
-## Como Usar
+## 🚀 Quick Start
 
 ### Pré-requisitos
-- Sistema de Gerenciamento de Banco de Dados (MySQL, PostgreSQL, SQL Server, etc.)
-- Ferramenta para importação de arquivos CSV
 
-### Instalação
+- Docker e Docker Compose
+- 8GB RAM disponível
+- 10GB espaço em disco
 
-1. **Clone o repositório**
-   ```bash
-   git clone https://github.com/seu-usuario/Gerenciamento-Banco-de-dados.git
-   cd Gerenciamento-Banco-de-dados
-   ```
+### Linux/Mac
 
-2. **Crie o banco de dados**
-   ```sql
-   CREATE DATABASE analise_mercado_financeiro;
-   USE analise_mercado_financeiro;
-   ```
+```bash
+# 1. Clonar e entrar no diretório
+cd Gerenciamento-Banco-de-dados_v2
 
-3. **Execute os scripts de criação**
-   ```bash
-   # Execute o script de criação das tabelas
-   mysql -u seu_usuario -p analise_mercado_financeiro < scripts/create_datasets.sql
-   ```
+# 2. Executar setup automatizado
+./scripts-linux/1_setup_automatico.sh
 
-4. **Importe os datasets**
-   - Importe os arquivos CSV da pasta `datasets/` para as respectivas tabelas
-   - Utilize as ferramentas de importação do seu SGBD ou scripts ETL
+# 3. Aguardar ~3-5 minutos
+```
 
-5. **Execute as análises**
-   ```bash
-   # Execute as queries de análise
-   mysql -u seu_usuario -p analise_mercado_financeiro < scripts/Script_SP500.sql
-   ```
+### Windows
 
-## Planejamento
-
-O gerenciamento do projeto é feito através do **Trello** utilizando metodologia **SCRUM**:
-- [Board de Planejamento (Trello)](https://trello.com/invite/b/KkIiciFk/ATTIc77290b98b15e3589e6f2e7ea4d9dad3915E3CA4/gest-o-de-tarefas-scrum)
-
-## Tecnologias Utilizadas
-
-- **Banco de Dados**: SQL Server
-- **Modelagem**: Data Warehouse (Esquema Estrela/Floco de Neve)
-- **Visualização de Modelos**: Draw.io, ferramentas de modelagem ER
-- **Gerenciamento de Projeto**: Trello (Metodologia SCRUM)
-- **Controle de Versão**: Git/GitHub
-
-## Contribuidores
-
-Este projeto foi desenvolvido como parte da disciplina de Gerenciamento de Banco de Dados.
+```powershell
+.\scripts-windows\1_setup_automatico.ps1
+```
 
 ---
 
-**📊 Análise de Mercado Financeiro - S&P 500 & CSI 500**
+## 📂 Estrutura do Projeto
+
+```
+├── datasets/                    # CSVs com dados (217MB)
+├── doc/                         # Dicionário de dados
+├── scripts/
+│   ├── 1-setup/                 # Setup e ETL
+│   ├── 2-analise/               # Scripts de análise
+│   ├── 2-consultas/             # Visualização
+│   └── 3-manutencao/            # Manutenção
+├── scripts-linux/               # Automação Linux
+├── scripts-windows/             # Automação Windows
+├── README.md                    # Este arquivo
+├── SETUP.md                     # Guia detalhado
+└── QUERIES_PRONTAS.md           # Exemplos de queries
+```
+
+---
+
+## 💾 Databases
+
+### FinanceDB (Modelo Dimensional)
+
+| Tabela | Registros | Descrição |
+|--------|-----------|-----------|
+| Empresas | 500 | Empresas do S&P 500 |
+| Tempo | 2.515 | Dimensão temporal |
+| PrecoAcao | 499.982 | Preços históricos |
+| SubSetor | 500 | Classificação setorial |
+| Localizacao | 500 | Localização |
+| Indice | 1 | Índices |
+| IndiceSP500 | 2.515 | Valores do S&P 500 |
+| Dividendos | 0 | Preparada para futuro |
+
+### datasets (Dados Brutos)
+
+| Tabela | Registros | Descrição |
+|--------|-----------|-----------|
+| SP500_data | 499.982 | S&P 500 consolidado |
+| CSI500 | 865.898 | Mercado chinês |
+
+### Views de Análise
+
+| View | Registros | Descrição |
+|------|-----------|-----------|
+| vw_ValorizacaoAcoes | 422 | Valorização 6 meses |
+| vw_VolatilidadeSetor | 11 | Volatilidade/setor |
+| vw_VolumeNegociacao | 500 | Volume negociação |
+| vw_EvolucaoSP500Mensal | 2.512 | Evolução mensal |
+| vw_EmpresasPorSetor | 11 | Distribuição setorial |
+| vw_ResumoDesempenhoEmpresas | 500 | Resumo completo |
+
+---
+
+## 📊 Análises Disponíveis
+
+### S&P 500
+
+1. ✅ Maior Valorização - Top 20 ações
+2. ✅ Volatilidade por Setor
+3. ✅ Volume de Negociação
+4. ✅ Evolução do Índice
+5. ✅ Distribuição Setorial
+
+### CSI500
+
+1. ✅ Maior Valorização
+2. ✅ Volatilidade por Indústria
+3. ✅ Volume de Negociação
+4. ✅ Distribuição por Indústria
+
+---
+
+## 🔧 Uso
+
+### Conectar via DataGrip
+
+```
+Host: localhost
+Port: 1433
+User: SA
+Password: Cc202505!
+Databases: FinanceDB, datasets
+```
+
+### Queries Rápidas
+
+```sql
+-- Top 10 valorizações
+USE FinanceDB;
+SELECT TOP 10 * FROM vw_ValorizacaoAcoes
+ORDER BY ValorizacaoPercentual DESC;
+
+-- Setores voláteis
+SELECT * FROM vw_VolatilidadeSetor
+ORDER BY VolatilidadeAnualizada_Pct DESC;
+```
+
+Ver mais: [QUERIES_PRONTAS.md](QUERIES_PRONTAS.md)
+
+### Comandos Docker
+
+```bash
+# Status
+docker compose ps
+
+# Logs
+docker logs sqlserverCC --tail 50
+
+# Parar
+docker compose down
+
+# Reiniciar
+docker restart sqlserverCC
+```
+
+---
+
+## 🔍 Troubleshooting
+
+### Container não inicia
+
+```bash
+docker compose down -v
+docker compose up -d
+sleep 60
+```
+
+### Erro autenticação
+
+```bash
+docker inspect sqlserverCC | grep MSSQL_SA_PASSWORD
+```
+
+### Reimportar dados
+
+```bash
+./scripts-linux/4_limpar.sh
+./scripts-linux/1_setup_automatico.sh
+```
+
+---
+
+## 📚 Documentação
+
+- **[SETUP.md](SETUP.md)** - Guia detalhado
+- **[QUERIES_PRONTAS.md](QUERIES_PRONTAS.md)** - Exemplos
+- **doc/** - Dicionário de dados
+
+---
+
+## 📈 Métricas
+
+| Métrica | Valor |
+|---------|-------|
+| Total Registros | ~1.3M |
+| Empresas S&P 500 | 500 |
+| Empresas CSI500 | 479 |
+| Período | 2015-2025 |
+| Databases | 2 |
+| Tabelas | 10 |
+| Views | 6 |
+
+---
+
+**Status:** ✅ Funcionando
+**Versão:** 2.0
+**Atualização:** 2025-11-09

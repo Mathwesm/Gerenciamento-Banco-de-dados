@@ -1,0 +1,21 @@
+# IDEs
+.idea/
+.vscode/
+.claude/
+
+# Logs e temporários
+*.log
+*.tmp
+logs/
+resultados/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+.docker/
+
+# Backup
+backup*/
+*.bak
