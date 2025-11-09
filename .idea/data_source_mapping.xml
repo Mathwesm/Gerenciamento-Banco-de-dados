@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="DataSourcePerFileMappings">
-    <file url="file://$PROJECT_DIR$/scripts/1-setup/01_setup_completo.sql" value="6e2a638a-aeb4-40c7-92ca-4147f4ecd3e4" />
-    <file url="file://$PROJECT_DIR$/scripts/1-setup/02_processar_dados_etl.sql" value="6e2a638a-aeb4-40c7-92ca-4147f4ecd3e4" />
-    <file url="file://$PROJECT_DIR$/scripts/2-consultas/teste_conexao_datagrip.sql" value="6e2a638a-aeb4-40c7-92ca-4147f4ecd3e4" />
-    <file url="file://$PROJECT_DIR$/scripts/2-consultas/visualizar_tabelas.sql" value="6e2a638a-aeb4-40c7-92ca-4147f4ecd3e4" />
-  </component>
-</project>

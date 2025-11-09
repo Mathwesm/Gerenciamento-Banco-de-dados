@@ -48,13 +48,8 @@ FROM FinanceDB.dbo.Localizacao
 
 UNION ALL
 
-SELECT 'FINANCEDB', 'Indice', COUNT(*)
-FROM FinanceDB.dbo.Indice
-
-UNION ALL
-
-SELECT 'FINANCEDB', 'IndiceSP500', COUNT(*)
-FROM FinanceDB.dbo.IndiceSP500
+SELECT 'FINANCEDB', 'SP500Historico', COUNT(*)
+FROM FinanceDB.dbo.SP500Historico
 
 UNION ALL
 
@@ -127,29 +122,17 @@ ORDER BY e.NomeEmpresa;
 GO
 
 PRINT '';
-PRINT '--- INDICE ---';
-SELECT
-    IdIndice,
-    NomeIndice,
-    Descricao,
-    Simbolo,
-    PaisOrigem,
-    DataCriacao
-FROM Indice;
-GO
-
-PRINT '';
-PRINT '--- INDICE SP500 (Top 10 mais recentes) ---';
+PRINT '--- SP500 HISTORICO (Top 10 mais recentes) ---';
 SELECT TOP 10
-    i.IdIndiceSP500,
-    ind.Simbolo,
-    ind.NomeIndice,
-    i.DataReferencia,
-    i.ValorFechamento,
-    i.VolumeNegociado
-FROM IndiceSP500 i
-INNER JOIN Indice ind ON i.IdIndice = ind.IdIndice
-ORDER BY i.DataReferencia DESC;
+    IdSP500,
+    DataReferencia,
+    ValorFechamento,
+    ValorAbertura,
+    ValorMaximo,
+    ValorMinimo,
+    VolumeNegociado
+FROM SP500Historico
+ORDER BY DataReferencia DESC;
 GO
 
 PRINT '';
@@ -182,6 +165,22 @@ FROM PrecoAcao p
 INNER JOIN Empresas e ON p.CIK = e.CIK
 INNER JOIN Tempo t ON p.IdTempo = t.IdTempo
 ORDER BY t.DataCompleta DESC;
+GO
+
+PRINT '';
+PRINT '--- DIVIDENDOS (Top 10 maiores) ---';
+SELECT TOP 10
+    d.IdDividendo,
+    e.Ticker,
+    e.NomeEmpresa,
+    t.DataCompleta,
+    d.ValorDividendo,
+    d.TipoDividendo,
+    d.DataExDividendo
+FROM Dividendos d
+INNER JOIN Empresas e ON d.CIK = e.CIK
+INNER JOIN Tempo t ON d.IdTempo = t.IdTempo
+ORDER BY d.ValorDividendo DESC;
 GO
 
 -- ========================================

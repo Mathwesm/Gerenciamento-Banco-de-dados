@@ -169,23 +169,21 @@ GO
 
 WITH IndiceMensal AS (
     SELECT
-        YEAR(i.DataReferencia) AS Ano,
-        MONTH(i.DataReferencia) AS Mes,
-        MIN(i.ValorFechamento) AS MinimoMes,
-        MAX(i.ValorFechamento) AS MaximoMes,
-        AVG(i.ValorFechamento) AS MediaMes,
-        FIRST_VALUE(i.ValorFechamento) OVER (
-            PARTITION BY YEAR(i.DataReferencia), MONTH(i.DataReferencia)
-            ORDER BY i.DataReferencia ASC
+        YEAR(DataReferencia) AS Ano,
+        MONTH(DataReferencia) AS Mes,
+        MIN(ValorFechamento) AS MinimoMes,
+        MAX(ValorFechamento) AS MaximoMes,
+        AVG(ValorFechamento) AS MediaMes,
+        FIRST_VALUE(ValorFechamento) OVER (
+            PARTITION BY YEAR(DataReferencia), MONTH(DataReferencia)
+            ORDER BY DataReferencia ASC
         ) AS AberturaMes,
-        FIRST_VALUE(i.ValorFechamento) OVER (
-            PARTITION BY YEAR(i.DataReferencia), MONTH(i.DataReferencia)
-            ORDER BY i.DataReferencia DESC
+        FIRST_VALUE(ValorFechamento) OVER (
+            PARTITION BY YEAR(DataReferencia), MONTH(DataReferencia)
+            ORDER BY DataReferencia DESC
         ) AS FechamentoMes
-    FROM IndiceSP500 i
-    INNER JOIN Indice ind ON i.IdIndice = ind.IdIndice
-    WHERE ind.NomeIndice = 'S&P 500'
-    GROUP BY YEAR(i.DataReferencia), MONTH(i.DataReferencia), i.DataReferencia, i.ValorFechamento
+    FROM SP500Historico
+    GROUP BY YEAR(DataReferencia), MONTH(DataReferencia), DataReferencia, ValorFechamento
 )
 SELECT DISTINCT
     Ano,
@@ -258,8 +256,8 @@ UNION ALL
 SELECT
     'Valor Atual do S&P 500',
     CAST(CAST(ValorFechamento AS DECIMAL(10,2)) AS VARCHAR(20))
-FROM IndiceSP500
-WHERE DataReferencia = (SELECT MAX(DataReferencia) FROM IndiceSP500);
+FROM SP500Historico
+WHERE DataReferencia = (SELECT MAX(DataReferencia) FROM SP500Historico);
 GO
 
 PRINT '';
