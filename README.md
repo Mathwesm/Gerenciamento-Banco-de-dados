@@ -1,94 +1,22 @@
-# Gerenciamento Banco de Dados - Análise Mercado Financeiro
+# 📊 Análise de Mercado de Ações - S&P 500 e CSI500
 
-## 🎯 Objetivo
+## 📋 Sobre o Projeto
+
+Este projeto realiza análises quantitativas aprofundadas sobre os mercados de ações dos índices **S&P 500** (EUA) e **CSI500** (China), utilizando SQL Server para processamento de dados e geração de insights financeiros.
+
+### 🎯 Objetivo
 
 Avaliar a situação do mercado financeiro americano (S&P 500) e chinês (CSI 500) em situações de crise econômica, usando essa avaliação para prever como o mercado irá se comportar em futuras crises.
 
----
+**Responder 7 perguntas analíticas fundamentais:**
 
-## 🚀 Como Começar (Setup Completo)
-
-### 📌 Escolha seu Sistema Operacional
-
-#### 🐧 **LINUX/MAC**
-
-Entre na pasta Linux:
-```bash
-cd scripts-linux
-```
-
-Execute os scripts:
-```bash
-./1_setup_automatico.sh    # PASSO 1: Setup inicial
-./2_processar_etl.sh       # PASSO 2: Processar dados (ETL)
-./3_visualizar.sh          # PASSO 3: Visualizar dados (opcional)
-./4_limpar.sh              # PASSO 4: Limpar/resetar (opcional)
-```
-
-**Se der erro de permissão:**
-```bash
-chmod +x *.sh
-./1_setup_automatico.sh
-```
-
----
-
-#### 🪟 **WINDOWS**
-
-Entre na pasta Windows:
-```powershell
-cd scripts-windows
-```
-
-Execute os scripts:
-```powershell
-.\1_setup_automatico.ps1    # PASSO 1: Setup inicial
-.\2_processar_etl.ps1       # PASSO 2: Processar dados (ETL)
-.\3_visualizar.ps1          # PASSO 3: Visualizar dados (opcional)
-.\4_limpar.ps1              # PASSO 4: Limpar/resetar (opcional)
-```
-
-**Se der erro de política de execução:**
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-.\1_setup_automatico.ps1
-```
-
----
-
-### 📝 O que cada script faz:
-
-**PASSO 1 - Setup Inicial**: Cria databases, tabelas e importa dados brutos dos CSVs
-
-**PASSO 2 - Processar Dados (ETL)**: Processa dados brutos e popula tabelas do master
-- ✅ Fazer parse dos dados CSV (separar colunas)
-- ✅ Popular tabela Empresas com dados do S&P 500
-- ✅ Popular SubSetor e Localizacao
-- ✅ Popular histórico do índice S&P 500
-- ✅ Popular dimensão Tempo
-- ✅ Verificar duplicatas automaticamente
-
-**PASSO 3 - Visualizar Dados**: Mostra os dados de todas as tabelas
-
-**PASSO 4 - Limpar/Resetar**: Menu interativo para limpar ou resetar o banco
-
----
-
-## 📊 Configurar DataGrip
-
-### 1. Criar Conexão
-- Host: `localhost`
-- Port: `1433`
-- User: `SA`
-- Password: `Cc202505!`
-- Database: `master`
-
-### 2. Marcar Schemas
-- ✅ datasets
-- ✅ master
-
-### 3. Testar
-Abra o arquivo `scripts/2-consultas/teste_conexao_datagrip.sql` e execute (Ctrl+Enter)
+1. ✅ **Quais ações tiveram maior valorização percentual no último ano?**
+2. ✅ **Qual é a volatilidade média das ações por setor ou indústria?**
+3. ✅ **Quais empresas registraram maior volume de negociação em determinado período?**
+4. ✅ **Quais ações apresentaram crescimento consistente ao longo dos últimos 5 anos?**
+5. ✅ **Quais setores apresentam melhor desempenho médio no índice S&P 500?**
+6. ✅ **Quais ações sofreram maior queda em períodos de crise econômica? (COVID-19)**
+7. ⚠️  **Qual é o retorno médio de dividendos por setor e por empresa?** (Dados não disponíveis no dataset atual)
 
 ---
 
@@ -97,99 +25,265 @@ Abra o arquivo `scripts/2-consultas/teste_conexao_datagrip.sql` e execute (Ctrl+
 ```
 Gerenciamento-Banco-de-dados_v2/
 │
-├── compose.yaml                        # Configuração Docker
+├── 📂 datasets/                    # Dados brutos (CSV)
+│   ├── S&P-500-companies.csv      # 503 empresas S&P 500
+│   ├── S&P500-fred.csv             # 2,609 observações do índice
+│   ├── CSI500-part-1.csv           # Ações chinesas (parte 1)
+│   └── CSI500-part-2.csv           # Ações chinesas (parte 2)
 │
-├── README.md                          # Este arquivo
-├── COMECE_AQUI.md                     # Guia de início rápido
+├── 📂 doc/                         # Documentação e modelos
+│   ├── SP500/                      # Modelos de dados S&P 500
+│   ├── CSI500/                     # Modelos de dados CSI500
+│   └── dicionario-de-dados.csv     # Dicionário completo
 │
-├── scripts-linux/                     # 🐧 Scripts para Linux/Mac
-│   ├── 1_setup_automatico.sh          # ⭐ PASSO 1: Setup inicial
-│   ├── 2_processar_etl.sh             # ⭐ PASSO 2: Processar dados (ETL)
-│   ├── 3_visualizar.sh                # 👁️  PASSO 3: Visualizar tabelas
-│   └── 4_limpar.sh                    # 🧹 PASSO 4: Limpar/resetar
-│
-├── scripts-windows/                   # 🪟 Scripts para Windows
-│   ├── 1_setup_automatico.ps1         # ⭐ PASSO 1: Setup inicial
-│   ├── 2_processar_etl.ps1            # ⭐ PASSO 2: Processar dados (ETL)
-│   ├── 3_visualizar.ps1               # 👁️  PASSO 3: Visualizar tabelas
-│   └── 4_limpar.ps1                   # 🧹 PASSO 4: Limpar/resetar
-│
-├── datasets/                          # Arquivos CSV
-│   ├── S&P-500-companies.csv
-│   ├── S&P500-fred.csv
-│   ├── CSI500-part-1.csv
-│   └── CSI500-part-2.csv
-│
-├── scripts/                           # Scripts SQL
-│   ├── 1-setup/                       # Scripts de configuração
-│   │   ├── 01_setup_completo.sql      # Cria databases e tabelas
-│   │   └── 02_processar_dados_etl.sql # ETL (processar e popular)
+├── 📂 scripts/                     # Scripts SQL organizados
+│   ├── 1-setup/                    # Configuração inicial
+│   │   ├── 01_setup_completo.sql
+│   │   └── 02_processar_dados_etl.sql
 │   │
-│   ├── 2-consultas/                   # Scripts de visualização
-│   │   ├── visualizar_tabelas.sql     # Ver todas as tabelas
-│   │   └── teste_conexao_datagrip.sql # Testes no DataGrip
+│   ├── 2-analise/                  # ⭐ ANÁLISES PRINCIPAIS
+│   │   ├── 01_criar_tabelas_normalizadas.sql
+│   │   ├── 02_queries_analise.sql
+│   │   ├── 03_executar_analise_completa.sql
+│   │   └── README.md
 │   │
-│   └── 3-manutencao/                  # Scripts de manutenção
-│       ├── limpar_dados.sql           # Limpar dados (mantém estrutura)
-│       └── resetar_tudo.sql           # Reset completo
+│   ├── 2-consultas/                # Consultas auxiliares
+│   │   ├── teste_conexao_datagrip.sql
+│   │   └── visualizar_tabelas.sql
+│   │
+│   └── 3-manutencao/               # Limpeza e reset
+│       ├── limpar_dados.sql
+│       └── resetar_tudo.sql
 │
-├── doc/                               # Modelos e documentação
-│   ├── SP500/
-│   ├── CSI500/
-│   └── dicionario-de-dados.csv
+├── 📂 scripts-linux/               # Scripts Bash para Linux/Mac
+│   ├── 1_setup_automatico.sh
+│   ├── 2_processar_etl.sh
+│   ├── 3_visualizar.sh
+│   └── 4_limpar.sh
 │
-└── backup_arquivos_antigos/           # Arquivos de versões anteriores
+├── 📂 scripts-windows/             # Scripts PowerShell para Windows
+│   ├── 1_setup_automatico.ps1
+│   ├── 2_processar_etl.ps1
+│   ├── 3_visualizar.ps1
+│   └── 4_limpar.ps1
+│
+├── 📂 logs/                        # Logs de execução
+├── 📂 resultados/                  # Resultados das análises
+├── 📂 backup_arquivos_antigos/     # Arquivos legados
+│
+├── 📄 COMECE_AQUI.md               # ⭐ INÍCIO RÁPIDO
+├── 📄 perguntas-analise.md         # Lista das 7 perguntas
+├── 📄 executar-analise.sh          # Execução rápida (Linux)
+├── 📄 executar-analise.ps1         # Execução rápida (Windows)
+├── 📄 compose.yaml                 # Docker Compose
+└── 📄 README.md                    # Este arquivo
 ```
 
 ---
 
-## 💾 Estrutura dos Databases
+## 🚀 Início Rápido (3 COMANDOS!)
 
-### Database: `datasets` (Dados Brutos)
-Tabelas com dados importados dos CSVs:
-- **SP500_companies** (~1.000 registros)
-- **SP500_fred** (~5.000 registros)
-- **CSI500** (~1.700.000 registros)
+### Pré-requisitos
 
-### Database: `master` (Modelo Dimensional)
-Estrutura para análises:
-- **Indice** - Informações sobre índices financeiros
-- **IndiceSP500** - Valores históricos S&P 500
-- **Empresas** - Cadastro de empresas
-- **SubSetor** - Classificação de indústrias
-- **Localizacao** - Localização geográfica
-- **Tempo** - Dimensão temporal
-- **PrecoAcao** - Preços históricos das ações
-- **Dividendos** - Histórico de dividendos
+- **Docker** e **Docker Compose** instalados
+- **8GB RAM** disponível (mínimo 4GB)
+- **10GB espaço em disco**
+- Sistema operacional: Linux, macOS ou Windows
+
+### ⚡ Setup Automático (RECOMENDADO)
+
+#### 🐧 Linux / macOS
+
+```bash
+# 1. Navegar até o projeto
+cd /home/matheus/DataGripProjects/Gerenciamento-Banco-de-dados_v2
+
+# 2. Tornar script executável
+chmod +x SETUP_COMPLETO.sh
+
+# 3. Executar setup completo (escolha opção 1 no menu)
+./SETUP_COMPLETO.sh
+```
+
+**O que o script faz:**
+- ✅ Inicia o Docker container SQL Server
+- ✅ Cria os bancos de dados (datasets, master)
+- ✅ Importa ~1.7 milhões de registros dos CSVs
+- ✅ Normaliza e processa os dados
+- ✅ Cria tabelas otimizadas com índices
+- ✅ Cria as 7 views analíticas
+- ✅ Executa as queries e mostra os resultados
+
+**Tempo estimado:** 5-10 minutos
+
+#### 🪟 Windows PowerShell
+
+```powershell
+# 1. Navegar até o projeto
+cd C:\caminho\do\projeto
+
+# 2. Iniciar o ambiente
+docker compose up -d
+
+# 3. Executar setup (primeira vez)
+.\scripts-windows\1_setup_automatico.ps1
+
+# 4. Executar análises
+.\executar-analise.ps1
+
+# 5. Ver resultados
+.\scripts-windows\3_visualizar.ps1
+```
+
+**Se der erro de política de execução:**
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\executar-analise.ps1
+```
 
 ---
 
-## 🔍 Perguntas de Negócio
+---
 
-1. Quais ações tiveram maior valorização percentual no último ano?
-2. Qual é a volatilidade média das ações por setor ou indústria?
-3. Quais empresas registraram maior volume de negociação?
-4. Quais ações apresentaram crescimento consistente nos últimos 5 anos?
-5. Quais setores apresentam melhor desempenho médio no S&P 500?
-6. Quais ações sofreram maior queda em períodos de crise (COVID)?
-7. Qual é o retorno médio de dividendos por setor e empresa?
+## 📊 Dados Disponíveis
+
+### Dataset 1: S&P 500 Companies
+- **Empresas:** 503
+- **Campos:** Symbol, Security, GICS Sector, GICS Sub-Industry, Headquarters, Date Added, CIK, Founded
+- **Fonte:** CSV de empresas listadas no S&P 500
+
+### Dataset 2: S&P 500 Index (FRED)
+- **Observações:** 2,609
+- **Período:** 2015-08-31 até presente
+- **Campos:** Observation Date, SP500 Value
+- **Fonte:** Federal Reserve Economic Data
+
+### Dataset 3: CSI500 (China)
+- **Ações:** 500+ empresas chinesas
+- **Registros:** 865,898 observações
+- **Período:** 2015-09-09 até presente
+- **Campos:** Symbol, Date, Open, High, Low, Close, Volume, Amount, Shares Outstanding, Turnover Rate, Company Name, Industry
 
 ---
 
-## 📐 Modelagem de Dados
+## 🎯 As 7 Perguntas Respondidas
 
-### Mercado Americano (S&P 500)
-- [Modelo Conceitual](doc/SP500/Modelo-Conceitual-SP500.svg)
-- [Modelo Lógico](doc/SP500/Modelo-Logico-SP500.svg)
-- [Modelo Físico](doc/SP500/Modelo-Fisico-SP500.svg)
+### 1️⃣ Quais ações tiveram maior valorização percentual no último ano?
+- **View:** `vw_P1_MaiorValorizacaoUltimoAno`
+- **Métricas:** Valorização %, Variação absoluta, Categoria de desempenho
+- **Classificação:** Crescimento Excepcional (>50%), Alto (20-50%), Moderado (0-20%)
+- **Exemplo:**
+  ```sql
+  SELECT TOP 20 Symbol, Empresa, ValorizacaoPercentual, CategoriaDesempenho
+  FROM vw_P1_MaiorValorizacaoUltimoAno
+  ORDER BY ValorizacaoPercentual DESC;
+  ```
 
-### Mercado Chinês (CSI 500)
-- [Modelo Conceitual](doc/CSI500/Modelo-Conceitual-CSI500.png)
-- [Modelo Lógico](doc/CSI500/Modelo-logico-CSI500.png)
-- [Modelo Físico](doc/CSI500/Modelo-Fisico-CSI500.png)
+### 2️⃣ Qual é a volatilidade média das ações por setor ou indústria?
+- **View:** `vw_P2_VolatilidadePorIndustria`
+- **Métricas:** Volatilidade diária, Volatilidade anualizada (√252), Retorno médio
+- **Classificação:** Muito Alta (>40%), Alta (25-40%), Moderada (15-25%), Baixa (<15%)
+- **Exemplo:**
+  ```sql
+  SELECT Industria, VolatilidadeAnualizada_Pct, ClassificacaoVolatilidade
+  FROM vw_P2_VolatilidadePorIndustria
+  ORDER BY VolatilidadeAnualizada_Pct DESC;
+  ```
 
-### Dicionário de Dados
-Consulte o [dicionário completo](doc/dicionario-de-dados.csv) para detalhes de todas as tabelas e colunas.
+### 3️⃣ Quais empresas registraram maior volume de negociação?
+- **View:** `vw_P3_MaiorVolumeNegociacao`
+- **Período:** Últimos 6 meses
+- **Métricas:** Volume total/médio, Valor financeiro, Taxa de giro
+- **Classificação:** Muito Líquida, Líquida, Moderadamente Líquida, Pouco Líquida
+- **Exemplo:**
+  ```sql
+  SELECT TOP 30 Symbol, Empresa, VolumeTotal, ClassificacaoLiquidez
+  FROM vw_P3_MaiorVolumeNegociacao
+  ORDER BY VolumeTotal DESC;
+  ```
+
+### 4️⃣ Quais ações apresentaram crescimento consistente nos últimos 5 anos?
+- **View:** `vw_P4_CrescimentoConsistente5Anos`
+- **Métricas:** Taxa de sucesso (% anos positivos), Retorno médio anual, Sharpe Ratio
+- **Classificação:** Muito Consistente (≥80%), Consistente (60-80%), Moderada (40-60%)
+- **Exemplo:**
+  ```sql
+  SELECT TOP 30 Symbol, Empresa, TaxaSucessoPct, RetornoMedioAnual_Pct
+  FROM vw_P4_CrescimentoConsistente5Anos
+  ORDER BY TaxaSucessoPct DESC;
+  ```
+
+### 5️⃣ Quais setores apresentam melhor desempenho médio no S&P 500?
+- **View:** `vw_P5_DesempenhoSetoresSP500`
+- **Métricas:** Quantidade de empresas, Participação %, Empresas adicionadas recentemente
+- **Classificação:** Setor Dominante (≥60), Principal (40-59), Relevante (20-39)
+- **Exemplo:**
+  ```sql
+  SELECT Setor, QtdEmpresas, ParticipacaoPct, ClassificacaoTamanho
+  FROM vw_P5_DesempenhoSetoresSP500
+  ORDER BY QtdEmpresas DESC;
+  ```
+
+### 6️⃣ Quais ações sofreram maior queda durante a crise COVID-19?
+- **View:** `vw_P6_QuedaCriseCovid`
+- **Período:** Janeiro a Julho de 2020
+- **Métricas:** Queda percentual, Recuperação total, Data do mínimo
+- **Classificação:** Resiliente (<10%), Impacto Moderado (10-25%), Alto (25-40%), Severo (>40%)
+- **Exemplo:**
+  ```sql
+  SELECT TOP 30 Symbol, Empresa, QuedaPercentual, RecuperacaoTotal_Pct, ClassificacaoImpacto
+  FROM vw_P6_QuedaCriseCovid
+  ORDER BY QuedaPercentual ASC;
+  ```
+
+### 7️⃣ Qual é o retorno médio de dividendos por setor e por empresa?
+- **View:** `vw_P7_DadosBaseParaDividendos`
+- **Status:** ⚠️ Dados de dividendos não disponíveis no dataset atual
+- **Estrutura:** Preparada para futura integração
+- **Alternativas:** API Yahoo Finance, Alpha Vantage, Bloomberg
+- **Exemplo:**
+  ```sql
+  SELECT Symbol, NomeEmpresa, Setor, TendenciaDividendos
+  FROM vw_P7_DadosBaseParaDividendos
+  WHERE Setor IN ('Utilities', 'Real Estate')
+  ORDER BY Setor;
+  ```
+
+---
+
+## 📈 Views Criadas
+
+### Views Analíticas (6 total)
+
+| View | Descrição | Uso |
+|------|-----------|-----|
+| `vw_EmpresasSP500Resumo` | Resumo de empresas S&P 500 | Consultas gerais sobre empresas |
+| `vw_IndiceSP500Metricas` | Métricas do índice com variações | Análise temporal do mercado |
+| `vw_AcoesChinesasIndicadores` | Indicadores técnicos CSI500 | Análises técnicas detalhadas |
+| `vw_TopPerformers30d` | Top performers em 30 dias | Identificação rápida de winners |
+| `vw_ResumoSetoresSP500` | Agregação por setor | Análise setorial |
+| `vw_ResumoIndustriasCSI500` | Agregação por indústria | Análise industrial China |
+
+### Exemplos de Consulta
+
+```sql
+-- Top 10 performers nos últimos 30 dias
+SELECT TOP 10 * FROM vw_TopPerformers30d
+ORDER BY VariacaoPercentual DESC;
+
+-- Resumo por setor S&P 500
+SELECT * FROM vw_ResumoSetoresSP500
+ORDER BY QtdEmpresas DESC;
+
+-- Evolução recente do índice
+SELECT TOP 30 Data, Valor, VariacaoPercentual
+FROM vw_IndiceSP500Metricas
+ORDER BY Data DESC;
+
+-- Ações chinesas por indústria
+SELECT * FROM vw_ResumoIndustriasCSI500
+ORDER BY VolumeTotal DESC;
+```
 
 ---
 

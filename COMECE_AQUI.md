@@ -1,193 +1,110 @@
-# 🚀 COMECE AQUI - Guia Rápido
+# 🚀 COMECE AQUI - Início Rápido
 
-## 📋 Ordem de Execução
-
-Siga os passos numerados na ordem:
-
----
-
-### **PASSO 1** - Setup Inicial
-
-Cria databases, tabelas e importa dados brutos dos CSVs:
+## ⚡ 3 Comandos para Rodar Tudo
 
 ```bash
-./1_setup_automatico.sh
+cd /home/matheus/DataGripProjects/Gerenciamento-Banco-de-dados_v2
+chmod +x SETUP_COMPLETO.sh
+./SETUP_COMPLETO.sh
 ```
 
-**O que este script faz:**
-- ✅ Inicia container Docker
-- ✅ Cria database `datasets` e `master`
-- ✅ Cria 11 tabelas (3 no datasets + 8 no master)
-- ✅ Importa ~1.7M registros dos CSVs
-
-**Tempo:** 2-5 minutos
+**Escolha a opção 1** no menu que aparecer.
 
 ---
 
-### **PASSO 2** - Processar Dados (ETL)
+## 📊 O Que Este Projeto Faz
 
-Processa dados brutos e popula tabelas do master:
+Analisa **~1.7 milhões de registros** de ações dos mercados:
+- 🇺🇸 **S&P 500** (EUA) - 503 empresas
+- 🇨🇳 **CSI500** (China) - 500+ empresas
+
+**Responde 7 perguntas de negócio:**
+
+1. ✅ Quais ações tiveram maior valorização no último ano?
+2. ✅ Qual a volatilidade média por setor/indústria?
+3. ✅ Quais empresas têm maior volume de negociação?
+4. ✅ Quais ações cresceram consistentemente em 5 anos?
+5. ✅ Quais setores têm melhor desempenho no S&P 500?
+6. ✅ Quais ações caíram mais durante a crise COVID?
+7. ⚠️ Análise de dividendos (dados não disponíveis)
+
+---
+
+## 📂 Arquivos Importantes
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `SETUP_COMPLETO.sh` | **EXECUTE ESTE!** Script principal |
+| `GUIA_RAPIDO.md` | Guia visual com exemplos |
+| `README.md` | Documentação completa |
+| `perguntas-analise.md` | Detalhes das 7 perguntas |
+| `scripts/2-analise/README.md` | Documentação das views SQL |
+
+---
+
+## 🎯 Após Executar o Setup
+
+Você terá **7 views SQL** criadas no banco `datasets`:
+
+```
+vw_P1_MaiorValorizacaoUltimoAno
+vw_P2_VolatilidadePorIndustria
+vw_P3_MaiorVolumeNegociacao
+vw_P4_CrescimentoConsistente5Anos
+vw_P5_DesempenhoSetoresSP500
+vw_P6_QuedaCriseCovid
+vw_P7_DadosBaseParaDividendos
+```
+
+---
+
+## 💻 Como Consultar
+
+### No DataGrip (Recomendado)
+
+1. Abra o DataGrip
+2. Atualize (F5)
+3. Navegue: `datasets` > `Views`
+4. Clique direito na view > `Edit Data`
+
+### Linha de Comando
 
 ```bash
-./2_processar_etl.sh
-```
-
-**O que este script faz:**
-- ✅ Faz parse dos dados CSV (separa colunas)
-- ✅ Popula tabela Empresas (~1.000 empresas S&P 500)
-- ✅ Popula SubSetor e Localizacao
-- ✅ Popula histórico do índice S&P 500 (~5.000 registros)
-- ✅ Popula dimensão Tempo
-- ✅ Verifica duplicatas automaticamente
-
-**Tempo:** 1-3 minutos
-
----
-
-### **PASSO 3** - Visualizar Dados (Opcional)
-
-Visualiza todas as tabelas e análises:
-
-```bash
-./3_visualizar.sh
-```
-
-**O que este script mostra:**
-- 📊 Resumo de todas as tabelas
-- 📊 Top 10 de cada tabela
-- 📊 Análises rápidas (empresas por setor, etc.)
-- 📊 Verificação de integridade
-
----
-
-### **PASSO 4** - Limpar/Resetar (Opcional)
-
-Menu interativo para limpeza:
-
-```bash
-./4_limpar.sh
-```
-
-**Opções:**
-- **Opção 1:** Limpar apenas dados (mantém estrutura)
-- **Opção 2:** Resetar tudo do zero (remove tudo)
-
----
-
-## 📊 Configurar DataGrip
-
-Após executar os PASSOS 1 e 2:
-
-### 1. Criar Conexão
-- Host: `localhost`
-- Port: `1433`
-- User: `SA`
-- Password: `Cc202505!`
-- Database: `master`
-
-### 2. Configurar Schemas
-- Botão direito na conexão → Properties → Schemas
-- Marcar: ✅ datasets, ✅ master
-- Apply → OK
-
-### 3. Testar
-- Abrir: `scripts/2-consultas/teste_conexao_datagrip.sql`
-- Executar: Ctrl + Enter
-
----
-
-## ✅ Resultado Esperado
-
-Após PASSO 1 e 2, você terá:
-
-### Database `datasets` (Dados Brutos)
-- SP500_companies (~1.000 registros)
-- SP500_fred (~5.000 registros)
-- CSI500 (~1.700.000 registros)
-
-### Database `master` (Modelo Dimensional - Processado)
-- Empresas (~1.000 empresas)
-- SubSetor (~1.000 registros)
-- Localizacao (~1.000 registros)
-- Indice (1 registro - S&P 500)
-- IndiceSP500 (~5.000 registros históricos)
-- Tempo (~5.000 datas)
-- PrecoAcao (vazio - aguardando dados)
-- Dividendos (vazio - aguardando dados)
-
-**Total: 11 tabelas | ~1.7M registros brutos + ~12K processados**
-
----
-
-## 🔄 Fluxo Completo
-
-```
-1. ./1_setup_automatico.sh     # Setup inicial
-          ↓
-2. ./2_processar_etl.sh        # Processar dados
-          ↓
-3. ./3_visualizar.sh           # Ver resultados (opcional)
-          ↓
-4. Configurar DataGrip         # Explorar dados
-          ↓
-5. Executar análises           # Trabalhar com os dados
+docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd \
+  -S localhost -U SA -P "Cc202505!" -C \
+  -Q "SELECT TOP 10 * FROM datasets.dbo.vw_P1_MaiorValorizacaoUltimoAno ORDER BY ValorizacaoPercentual DESC"
 ```
 
 ---
 
-## 🆘 Problemas?
+## 📚 Documentação
 
-### Container não inicia
-```bash
-docker compose down -v
-docker compose up -d
-```
-
-### Tabelas não aparecem no DataGrip
-```
-File → Invalidate Caches → Invalidate and Restart
-```
-
-### Quer recomeçar do zero?
-```bash
-./4_limpar.sh  # Escolha opção 2
-./1_setup_automatico.sh
-./2_processar_etl.sh
-```
+- 📖 **Guia Rápido:** [`GUIA_RAPIDO.md`](GUIA_RAPIDO.md)
+- 📘 **Documentação Completa:** [`README.md`](README.md)
+- 📙 **Detalhes das Perguntas:** [`perguntas-analise.md`](perguntas-analise.md)
+- 📕 **Documentação das Views:** [`scripts/2-analise/README.md`](scripts/2-analise/README.md)
 
 ---
 
-## 📁 Estrutura de Pastas
+## ⏱ Tempo Estimado
 
-```
-scripts/
-├── 1-setup/          # Scripts de configuração inicial
-├── 2-consultas/      # Scripts de visualização
-└── 3-manutencao/     # Scripts de limpeza/reset
-```
+- **Setup completo:** 5-10 minutos
+- **Consulta de resultados:** Instantâneo
 
 ---
 
-## 📖 Documentação Completa
+## ✅ Pré-requisitos
 
-Consulte o arquivo **README.md** para:
-- Detalhes técnicos
-- Comandos avançados
-- Troubleshooting completo
-- Estrutura do projeto
+- Docker instalado e rodando
+- 8GB RAM disponível
+- 10GB espaço em disco
 
 ---
 
 **Pronto para começar?**
 
 ```bash
-./1_setup_automatico.sh
+./SETUP_COMPLETO.sh
 ```
 
-Depois:
-
-```bash
-./2_processar_etl.sh
-```
-
-Simples assim! 🎉
+**Boa análise! 📊**
