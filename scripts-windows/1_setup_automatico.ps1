@@ -51,8 +51,16 @@ Write-Host ""
 # ========================================
 Write-Host "[2/7] Iniciando container Docker..." -ForegroundColor Yellow
 
-docker compose down -v 2>$null
+# Tenta derrubar containers antigos, mas NÃO quebra o script se der erro
+docker compose down -v 2>&1 | Out-Null
+
+# Sobe o container
 docker compose up -d
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERRO: Falha ao iniciar o container Docker (docker compose up -d)." -ForegroundColor Red
+    exit 1
+}
 
 Write-Host "[OK] Container iniciado." -ForegroundColor Green
 Write-Host ""
@@ -96,7 +104,9 @@ Write-Host ""
 Write-Host "[5/7] Executando setup completo (pode levar alguns minutos)..." -ForegroundColor Yellow
 Write-Host ""
 
-docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P "Cc202505!" -i /tmp/01_setup_completo.sql -C
+docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd `
+    -S localhost -U SA -P "Cc202505!" `
+    -i /tmp/01_setup_completo.sql -C
 
 Write-Host ""
 Write-Host "[OK] Setup executado." -ForegroundColor Green
@@ -109,15 +119,24 @@ Write-Host "[6/7] Verificando instalação..." -ForegroundColor Yellow
 Write-Host ""
 
 Write-Host "Databases criados:" -ForegroundColor Yellow
-docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P "Cc202505!" -Q "SELECT name FROM sys.databases WHERE name IN ('master','datasets','FinanceDB') ORDER BY name;" -C -h-1 -W
+docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd `
+    -S localhost -U SA -P "Cc202505!" `
+    -Q "SELECT name FROM sys.databases WHERE name IN ('master','datasets','FinanceDB') ORDER BY name;" `
+    -C -h-1 -W
 
 Write-Host ""
 Write-Host "Tabelas no FinanceDB:" -ForegroundColor Yellow
-docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P "Cc202505!" -Q "USE FinanceDB; SELECT name FROM sys.tables WHERE type = 'U' ORDER BY name;" -C -h-1 -W
+docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd `
+    -S localhost -U SA -P "Cc202505!" `
+    -Q "USE FinanceDB; SELECT name FROM sys.tables WHERE type = 'U' ORDER BY name;" `
+    -C -h-1 -W
 
 Write-Host ""
 Write-Host "Contagem de registros importados:" -ForegroundColor Yellow
-docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P "Cc202505!" -Q "USE datasets; SELECT 'SP500_data' AS Tabela, COUNT(*) AS Total FROM SP500_data UNION ALL SELECT 'CSI500' AS Tabela, COUNT(*) AS Total FROM CSI500;" -C -W
+docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd `
+    -S localhost -U SA -P "Cc202505!" `
+    -Q "USE datasets; SELECT 'SP500_data' AS Tabela, COUNT(*) AS Total FROM SP500_data UNION ALL SELECT 'CSI500' AS Tabela, COUNT(*) AS Total FROM CSI500;" `
+    -C -W
 
 Write-Host ""
 Write-Host "[OK] Verificação concluída." -ForegroundColor Green
