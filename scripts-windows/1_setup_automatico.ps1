@@ -95,23 +95,64 @@ Write-Host "Docker engine is running."
 Write-Host ""
 Write-Host "[2/7] Starting Docker container with docker compose..."
 
-docker compose down -v 2>$null | Out-Null
+# Stop and remove any existing containers/volumes from this compose (suppress all output)
+try {
+    docker compose down -v *> $null
+}
+catch {
+    Write-Host "Warning: error when trying to stop containers (ignored)."
+}
+
+# Start containers
 docker compose up -d
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: 'docker compose up -d' failed."
+    Write-Host "Check 'docker compose ps' and 'docker compose logs' for more details."
+    exit 1
+}
 
-Write-Host "Container started."
+# Check if the expected container is running
+$containerName = "sqlserverCC"
+$running = docker ps --filter "name=$containerName" --format "{{.Names}}"
+
+if (-not $running) {
+    Write-Host "ERROR: Container '$containerName' was not started correctly."
+    Write-Host "Run 'docker compose ps' and 'docker compose logs' to investigate."
+    exit 1
+}
+
+Write-Host "Container started: $containerName"
 Write-Host ""
 
 # ========================================
-# STEP 3: Wait for SQL Server to start
+# STEP 3: Wait for SQL Server to start (polling with SELECT 1)
 # ========================================
-Write-Host "[3/7] Waiting 60 seconds for SQL Server to start..."
-Start-Sleep -Seconds 60
-Write-Host "Wait complete."
-Write-Host ""
+Write-Host "[3/7] Waiting for SQL Server to accept connections..."
 
-Write-Host "Checking SQL Server logs (docker logs sqlserverCC)..."
-docker logs sqlserverCC 2>&1 | Select-String "Server is listening" -ErrorAction SilentlyContinue | Out-Null
-Write-Host "Log check done."
+$maxTries   = 30   # 30 tries * 2s = up to ~60s
+$connected  = $false
+
+for ($i = 1; $i -le $maxTries; $i++) {
+
+    docker exec $containerName /opt/mssql-tools18/bin/sqlcmd `
+        -S localhost -U SA -P "Cc202505!" -C `
+        -Q "SELECT 1" 2>$null | Out-Null
+
+    if ($LASTEXITCODE -eq 0) {
+        $connected = $true
+        break
+    }
+
+    Start-Sleep -Seconds 2
+}
+
+if (-not $connected) {
+    Write-Host "ERROR: SQL Server did not respond in time."
+    Write-Host "Check 'docker logs $containerName' to see what happened."
+    exit 1
+}
+
+Write-Host "SQL Server is up and responding."
 Write-Host ""
 
 # ========================================
@@ -124,7 +165,7 @@ if (-not (Test-Path "scripts/1-setup/01_setup_completo.sql")) {
     exit 1
 }
 
-docker cp "scripts/1-setup/01_setup_completo.sql" sqlserverCC:/tmp/01_setup_completo.sql
+docker cp "scripts/1-setup/01_setup_completo.sql" "${containerName}:/tmp/01_setup_completo.sql"
 
 Write-Host "Setup script copied."
 Write-Host ""
@@ -135,7 +176,7 @@ Write-Host ""
 Write-Host "[5/7] Running full setup inside container..."
 Write-Host ""
 
-docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd `
+docker exec $containerName /opt/mssql-tools18/bin/sqlcmd `
     -S localhost -U SA -P "Cc202505!" -C `
     -i /tmp/01_setup_completo.sql
 
@@ -150,19 +191,19 @@ Write-Host "[6/7] Verifying installation..."
 Write-Host ""
 
 Write-Host "Databases created (master and datasets expected):"
-docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd `
+docker exec $containerName /opt/mssql-tools18/bin/sqlcmd `
     -S localhost -U SA -P "Cc202505!" -C -h-1 -W `
     -Q "SELECT name FROM sys.databases WHERE name IN ('master', 'datasets') ORDER BY name;"
 
 Write-Host ""
 Write-Host "Tables in FinanceDB:"
-docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd `
+docker exec $containerName /opt/mssql-tools18/bin/sqlcmd `
     -S localhost -U SA -P "Cc202505!" -C -h-1 -W `
     -Q "USE FinanceDB; SELECT name FROM sys.tables WHERE type = 'U' ORDER BY name;"
 
 Write-Host ""
 Write-Host "Row count for imported tables in database 'datasets':"
-docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd `
+docker exec $containerName /opt/mssql-tools18/bin/sqlcmd `
     -S localhost -U SA -P "Cc202505!" -C -h-1 -W `
     -Q "USE datasets;
         SELECT 'SP500_data' AS TableName, COUNT(*) AS TotalRows FROM SP500_data
