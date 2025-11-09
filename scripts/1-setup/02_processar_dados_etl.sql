@@ -1,460 +1,288 @@
 -- ========================================
--- SCRIPT 01: SETUP COMPLETO DO PROJETO
+-- SCRIPT 02: PROCESSAR DADOS (ETL)
 -- ========================================
--- Descrição: Cria todas as tabelas necessárias no projeto
--- Database master: Tabelas do modelo dimensional (8 tabelas)
--- Database datasets: Tabelas com dados brutos dos CSVs (3 tabelas)
+-- Descrição: Processa dados brutos e popula o modelo dimensional
+-- Lê dados de: datasets.dbo.SP500_data e datasets.CSI500
+-- Popula: FinanceDB.Empresas, FinanceDB.Tempo, FinanceDB.PrecoAcao, etc.
 -- ========================================
--- IMPORTANTE: Execute este script via LINHA DE COMANDO (não no DataGrip)
--- Comando (Linux):
--- docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd \
---   -S localhost -U SA -P "Cc202505!" -i /tmp/01_setup_completo.sql -C
+-- IMPORTANTE: Execute APÓS o script 01_setup_completo.sql
+-- Comando: docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P "Cc202505!" -i /tmp/02_processar_dados_etl.sql -C
 -- ========================================
 
 PRINT '========================================';
-PRINT 'INICIANDO SETUP DO PROJETO';
+PRINT 'INICIANDO PROCESSAMENTO ETL';
 PRINT '========================================';
 GO
 
 -- ========================================
--- PARTE 1: CRIAR DATABASE DATASETS
+-- PARTE 1: POPULAR DIMENSÃO TEMPO
 -- ========================================
-USE master;
+USE FinanceDB;
 GO
 
-PRINT 'Verificando database datasets...';
+PRINT 'Populando dimensão Tempo...';
 GO
 
-IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'datasets')
-BEGIN
-    CREATE DATABASE datasets;
-    PRINT 'Database datasets criado com sucesso!';
-END
-ELSE
-BEGIN
-    PRINT 'Database datasets já existe.';
-END
-GO
+-- Inserir datas únicas do SP500_data
+INSERT INTO Tempo (DataCompleta, Ano, Mes, Dia, Trimestre, Semestre, DiaSemana, NomeDiaSemana, NomeMes, EhFimDeSemana, EhFeriado)
+SELECT DISTINCT
+    observation_date,
+    YEAR(observation_date),
+    MONTH(observation_date),
+    DAY(observation_date),
+    DATEPART(QUARTER, observation_date),
+    CASE WHEN MONTH(observation_date) <= 6 THEN 1 ELSE 2 END,
+    DATEPART(WEEKDAY, observation_date),
+    DATENAME(WEEKDAY, observation_date),
+    DATENAME(MONTH, observation_date),
+    CASE WHEN DATEPART(WEEKDAY, observation_date) IN (1, 7) THEN 1 ELSE 0 END,
+    0
+FROM datasets.dbo.SP500_data
+WHERE observation_date IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM Tempo WHERE DataCompleta = observation_date);
 
--- ========================================
--- PARTE 2: CRIAR TABELAS BRUTAS NO DATABASE DATASETS
--- (1 coluna "registro" para cada CSV)
--- ========================================
-USE datasets;
-GO
-
-PRINT 'Criando tabelas brutas no database datasets...';
-GO
-
-----------------------------------------------------
--- Tabela SP500_companies (1 coluna = linha inteira)
-----------------------------------------------------
-IF OBJECT_ID('dbo.SP500_companies','U') IS NOT NULL
-BEGIN
-    DROP TABLE dbo.SP500_companies;
-    PRINT 'Tabela SP500_companies anterior removida.';
-END;
-GO
-
-CREATE TABLE dbo.SP500_companies (
-    registro NVARCHAR(MAX) NOT NULL
-);
-PRINT 'Tabela SP500_companies criada.';
-GO
-
-----------------------------------------------------
--- Tabela SP500_fred (1 coluna = linha inteira)
-----------------------------------------------------
-IF OBJECT_ID('dbo.SP500_fred','U') IS NOT NULL
-BEGIN
-    DROP TABLE dbo.SP500_fred;
-    PRINT 'Tabela SP500_fred anterior removida.';
-END;
-GO
-
-CREATE TABLE dbo.SP500_fred (
-    registro NVARCHAR(MAX) NOT NULL
-);
-PRINT 'Tabela SP500_fred criada.';
-GO
-
-----------------------------------------------------
--- Tabela CSI500 (1 coluna = linha inteira)
-----------------------------------------------------
-IF OBJECT_ID('dbo.CSI500','U') IS NOT NULL
-BEGIN
-    DROP TABLE dbo.CSI500;
-    PRINT 'Tabela CSI500 anterior removida.';
-END;
-GO
-
-CREATE TABLE dbo.CSI500 (
-    registro NVARCHAR(MAX) NOT NULL
-);
-PRINT 'Tabela CSI500 criada.';
-GO
-
-PRINT 'Tabelas brutas do datasets criadas com sucesso!';
+PRINT 'Dimensão Tempo populada com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
 GO
 
 -- ========================================
--- PARTE 3: IMPORTAR DADOS DOS CSVs (BULK INSERT)
+-- PARTE 2: POPULAR DIMENSÃO EMPRESAS
 -- ========================================
 
-PRINT 'Iniciando importação dos dados...';
+PRINT 'Populando dimensão Empresas...';
 GO
 
-----------------------------------------------------
--- Importar SP500_companies
--- Cada linha inteira vai para a coluna "registro"
-----------------------------------------------------
-BEGIN TRY
-    TRUNCATE TABLE dbo.SP500_companies;
+-- Inserir/atualizar empresas únicas do SP500_data usando MERGE
+-- Para CIKs duplicados (ex: Class A e Class B), pega o primeiro alfabeticamente
+;WITH RankedCompanies AS (
+    SELECT DISTINCT
+        cik,
+        company_name,
+        symbol,
+        sector,
+        date_added_sp500,
+        TRY_CAST(founded_year AS SMALLINT) AS founded_year,
+        ROW_NUMBER() OVER (PARTITION BY cik ORDER BY symbol) as rn
+    FROM datasets.dbo.SP500_data
+    WHERE cik IS NOT NULL
+)
+MERGE Empresas AS target
+USING (
+    SELECT
+        cik,
+        company_name,
+        symbol,
+        sector,
+        date_added_sp500,
+        founded_year
+    FROM RankedCompanies
+    WHERE rn = 1
+) AS source
+ON target.CIK = source.cik
+WHEN MATCHED THEN
+    UPDATE SET
+        NomeEmpresa = source.company_name,
+        Ticker = source.symbol,
+        Setor = source.sector,
+        DataEntrada = source.date_added_sp500,
+        AnoFundacao = source.founded_year
+WHEN NOT MATCHED THEN
+    INSERT (CIK, NomeEmpresa, Ticker, Setor, DataEntrada, AnoFundacao, TipoSeguranca, Site)
+    VALUES (source.cik, source.company_name, source.symbol, source.sector,
+            source.date_added_sp500, source.founded_year, NULL, NULL);
 
-    BULK INSERT dbo.SP500_companies
-    FROM '/datasets/S&P-500-companies.csv'
-    WITH (
-        FIRSTROW       = 2,      -- pular header
-        FIELDTERMINATOR = '\t',  -- TAB (não existe no arquivo) => linha inteira vira 1 campo
-        ROWTERMINATOR   = '\n',  -- LF (padrão dos arquivos)
-        DATAFILETYPE    = 'char',
-        TABLOCK
-    );
-
-    PRINT 'SP500_companies: Dados importados com sucesso!';
-END TRY
-BEGIN CATCH
-    PRINT 'Erro ao importar SP500_companies: ' + ERROR_MESSAGE();
-END CATCH;
-GO
-
-----------------------------------------------------
--- Importar SP500_fred
-----------------------------------------------------
-BEGIN TRY
-    TRUNCATE TABLE dbo.SP500_fred;
-
-    BULK INSERT dbo.SP500_fred
-    FROM '/datasets/S&P500-fred.csv'
-    WITH (
-        FIRSTROW       = 2,
-        FIELDTERMINATOR = '\t',
-        ROWTERMINATOR   = '\n',
-        DATAFILETYPE    = 'char',
-        TABLOCK
-    );
-
-    PRINT 'SP500_fred: Dados importados com sucesso!';
-END TRY
-BEGIN CATCH
-    PRINT 'Erro ao importar SP500_fred: ' + ERROR_MESSAGE();
-END CATCH;
-GO
-
-----------------------------------------------------
--- Importar CSI500 part-1
-----------------------------------------------------
-BEGIN TRY
-    TRUNCATE TABLE dbo.CSI500;  -- limpar antes da primeira parte
-
-    BULK INSERT dbo.CSI500
-    FROM '/datasets/CSI500-part-1.csv'
-    WITH (
-        FIRSTROW       = 2,
-        FIELDTERMINATOR = '\t',
-        ROWTERMINATOR   = '\n',
-        DATAFILETYPE    = 'char',
-        TABLOCK
-    );
-
-    PRINT 'CSI500 part-1: Dados importados com sucesso!';
-END TRY
-BEGIN CATCH
-    PRINT 'Erro ao importar CSI500 part-1: ' + ERROR_MESSAGE();
-END CATCH;
-GO
-
-----------------------------------------------------
--- Importar CSI500 part-2 (append)
-----------------------------------------------------
-BEGIN TRY
-    BULK INSERT dbo.CSI500
-    FROM '/datasets/CSI500-part-2.csv'
-    WITH (
-        FIRSTROW       = 2,
-        FIELDTERMINATOR = '\t',
-        ROWTERMINATOR   = '\n',
-        DATAFILETYPE    = 'char',
-        TABLOCK
-    );
-
-    PRINT 'CSI500 part-2: Dados importados com sucesso!';
-END TRY
-BEGIN CATCH
-    PRINT 'Erro ao importar CSI500 part-2: ' + ERROR_MESSAGE();
-END CATCH;
-GO
-
-PRINT 'Importação de dados concluída!';
+PRINT 'Dimensão Empresas populada/atualizada com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
 GO
 
 -- ========================================
--- PARTE 4: CRIAR TABELAS NO DATABASE MASTER
--- (modelo dimensional – igual ao que você já tinha)
+-- PARTE 3: POPULAR DIMENSÃO SUBSETOR
 -- ========================================
-USE master;
+
+PRINT 'Populando dimensão SubSetor...';
 GO
 
-PRINT 'Criando tabelas do modelo dimensional no database master...';
-GO
+-- Usar MERGE para evitar duplicatas
+-- Para CIKs duplicados, pega o primeiro alfabeticamente por símbolo
+;WITH RankedSubSectors AS (
+    SELECT DISTINCT
+        cik,
+        sector,
+        sub_industry,
+        ROW_NUMBER() OVER (PARTITION BY cik ORDER BY symbol) as rn
+    FROM datasets.dbo.SP500_data
+    WHERE cik IS NOT NULL
+)
+MERGE SubSetor AS target
+USING (
+    SELECT
+        cik,
+        sector,
+        sub_industry
+    FROM RankedSubSectors
+    WHERE rn = 1
+) AS source
+ON target.CIK = source.cik
+WHEN MATCHED THEN
+    UPDATE SET
+        Industria = source.sector,
+        SubIndustria = source.sub_industry,
+        Categoria = source.sector
+WHEN NOT MATCHED THEN
+    INSERT (CIK, Industria, SubIndustria, Categoria)
+    VALUES (source.cik, source.sector, source.sub_industry, source.sector);
 
-----------------------------------------------------
--- Tabela: Indice
-----------------------------------------------------
-IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'Indice')
-BEGIN
-    CREATE TABLE Indice (
-        IdIndice    INT           NOT NULL IDENTITY(1,1),
-        NomeIndice  NVARCHAR(100) NOT NULL,
-        Descricao   NVARCHAR(255),
-        Simbolo     NVARCHAR(20),
-        PaisOrigem  NVARCHAR(50),
-        DataCriacao DATE,
-        PRIMARY KEY(IdIndice)
-    );
-    PRINT 'Tabela Indice criada.';
-END
-GO
-
-----------------------------------------------------
--- Tabela: IndiceSP500 (fato índice)
-----------------------------------------------------
-IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'IndiceSP500')
-BEGIN
-    CREATE TABLE IndiceSP500 (
-        IdIndiceSP500     INT NOT NULL IDENTITY(1,1),
-        IdIndice          INT NOT NULL,
-        DataReferencia    DATE NOT NULL,
-        ValorFechamento   DECIMAL(18,4),
-        ValorAbertura     DECIMAL(18,4),
-        ValorMaximo       DECIMAL(18,4),
-        ValorMinimo       DECIMAL(18,4),
-        VolumeNegociado   BIGINT,
-        PRIMARY KEY(IdIndiceSP500),
-        FOREIGN KEY (IdIndice) REFERENCES Indice(IdIndice)
-    );
-    PRINT 'Tabela IndiceSP500 criada.';
-END
-GO
-
-----------------------------------------------------
--- Tabela: Empresas
-----------------------------------------------------
-IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'Empresas')
-BEGIN
-    CREATE TABLE Empresas (
-        CIK           INT           NOT NULL,
-        NomeEmpresa   NVARCHAR(150) NOT NULL,
-        Ticker        NVARCHAR(10),
-        Setor         NVARCHAR(100),
-        DataEntrada   DATE,
-        AnoFundacao   SMALLINT,
-        TipoSeguranca NVARCHAR(100),
-        Site          NVARCHAR(255),
-        PRIMARY KEY(CIK)
-    );
-    PRINT 'Tabela Empresas criada.';
-END
-GO
-
-----------------------------------------------------
--- Tabela: SubSetor
-----------------------------------------------------
-IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'SubSetor')
-BEGIN
-    CREATE TABLE SubSetor (
-        IdSubSetor   INT NOT NULL IDENTITY(1,1),
-        CIK          INT NOT NULL,
-        Industria    NVARCHAR(150),
-        SubIndustria NVARCHAR(150),
-        Categoria    NVARCHAR(100),
-        PRIMARY KEY(IdSubSetor),
-        FOREIGN KEY (CIK) REFERENCES Empresas(CIK)
-    );
-    PRINT 'Tabela SubSetor criada.';
-END
-GO
-
-----------------------------------------------------
--- Tabela: Localizacao
-----------------------------------------------------
-IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'Localizacao')
-BEGIN
-    CREATE TABLE Localizacao (
-        IdLocalizacao INT NOT NULL IDENTITY(1,1),
-        CIK           INT NOT NULL,
-        Cidade        NVARCHAR(100),
-        Estado        NVARCHAR(50),
-        Pais          NVARCHAR(50) DEFAULT 'Estados Unidos',
-        Regiao        NVARCHAR(100),
-        CodigoPostal  NVARCHAR(20),
-        PRIMARY KEY(IdLocalizacao),
-        FOREIGN KEY (CIK) REFERENCES Empresas(CIK)
-    );
-    PRINT 'Tabela Localizacao criada.';
-END
-GO
-
-----------------------------------------------------
--- Tabela: Tempo
-----------------------------------------------------
-IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'Tempo')
-BEGIN
-    CREATE TABLE Tempo (
-        IdTempo        INT NOT NULL IDENTITY(1,1),
-        DataCompleta   DATE NOT NULL UNIQUE,
-        Ano            SMALLINT NOT NULL,
-        Mes            TINYINT NOT NULL,
-        Dia            TINYINT NOT NULL,
-        Trimestre      TINYINT NOT NULL,
-        Semestre       TINYINT NOT NULL,
-        DiaSemana      TINYINT NOT NULL,
-        NomeDiaSemana  NVARCHAR(20),
-        NomeMes        NVARCHAR(20),
-        EhFimDeSemana  BIT DEFAULT 0,
-        EhFeriado      BIT DEFAULT 0,
-        PRIMARY KEY(IdTempo)
-    );
-    PRINT 'Tabela Tempo criada.';
-END
-GO
-
-----------------------------------------------------
--- Tabela: PrecoAcao
-----------------------------------------------------
-IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'PrecoAcao')
-BEGIN
-    CREATE TABLE PrecoAcao (
-        IdPrecoAcao             INT NOT NULL IDENTITY(1,1),
-        CIK                     INT NOT NULL,
-        IdTempo                 INT NOT NULL,
-        PrecoAbertura           DECIMAL(18,4),
-        PrecoMaximo             DECIMAL(18,4),
-        PrecoMinimo             DECIMAL(18,4),
-        PrecoFechamento         DECIMAL(18,4),
-        PrecoFechamentoAjustado DECIMAL(18,4),
-        Volume                  BIGINT,
-        VariacaoDiaria          DECIMAL(10,4),
-        VariacaoPercentual      DECIMAL(10,4),
-        PRIMARY KEY(IdPrecoAcao),
-        FOREIGN KEY (CIK) REFERENCES Empresas(CIK),
-        FOREIGN KEY (IdTempo) REFERENCES Tempo(IdTempo)
-    );
-    PRINT 'Tabela PrecoAcao criada.';
-END
-GO
-
-----------------------------------------------------
--- Tabela: Dividendos
-----------------------------------------------------
-IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'Dividendos')
-BEGIN
-    CREATE TABLE Dividendos (
-        IdDividendo        INT NOT NULL IDENTITY(1,1),
-        CIK                INT NOT NULL,
-        IdTempo            INT NOT NULL,
-        ValorDividendo     DECIMAL(18,4),
-        TipoDividendo      NVARCHAR(50),
-        FrequenciaPagamento NVARCHAR(50),
-        DataExDividendo    DATE,
-        DataPagamento      DATE,
-        PRIMARY KEY(IdDividendo),
-        FOREIGN KEY (CIK) REFERENCES Empresas(CIK),
-        FOREIGN KEY (IdTempo) REFERENCES Tempo(IdTempo)
-    );
-    PRINT 'Tabela Dividendos criada.';
-END
+PRINT 'Dimensão SubSetor populada/atualizada com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
 GO
 
 -- ========================================
--- PARTE 5: CRIAR ÍNDICES PARA PERFORMANCE
+-- PARTE 4: POPULAR DIMENSÃO LOCALIZAÇÃO
 -- ========================================
 
-PRINT 'Criando índices...';
+PRINT 'Populando dimensão Localizacao...';
 GO
 
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_PrecoAcao_Data')
-    CREATE INDEX IX_PrecoAcao_Data ON PrecoAcao(IdTempo);
+-- Usar MERGE para evitar duplicatas
+-- Para CIKs duplicados, pega o primeiro alfabeticamente por símbolo
+;WITH RankedLocations AS (
+    SELECT DISTINCT
+        cik,
+        CASE
+            WHEN CHARINDEX(',', headquarters) > 0
+            THEN LTRIM(RTRIM(SUBSTRING(headquarters, 1, CHARINDEX(',', headquarters) - 1)))
+            ELSE headquarters
+        END AS cidade,
+        CASE
+            WHEN CHARINDEX(',', headquarters) > 0
+            THEN LTRIM(RTRIM(SUBSTRING(headquarters, CHARINDEX(',', headquarters) + 1, LEN(headquarters))))
+            ELSE NULL
+        END AS estado,
+        ROW_NUMBER() OVER (PARTITION BY cik ORDER BY symbol) as rn
+    FROM datasets.dbo.SP500_data
+    WHERE cik IS NOT NULL AND headquarters IS NOT NULL
+)
+MERGE Localizacao AS target
+USING (
+    SELECT
+        cik,
+        cidade,
+        estado
+    FROM RankedLocations
+    WHERE rn = 1
+) AS source
+ON target.CIK = source.cik
+WHEN MATCHED THEN
+    UPDATE SET
+        Cidade = source.cidade,
+        Estado = source.estado,
+        Pais = 'Estados Unidos'
+WHEN NOT MATCHED THEN
+    INSERT (CIK, Cidade, Estado, Pais, Regiao, CodigoPostal)
+    VALUES (source.cik, source.cidade, source.estado, 'Estados Unidos', NULL, NULL);
 
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_PrecoAcao_Empresa')
-    CREATE INDEX IX_PrecoAcao_Empresa ON PrecoAcao(CIK);
-
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Dividendos_Data')
-    CREATE INDEX IX_Dividendos_Data ON Dividendos(IdTempo);
-
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Dividendos_Empresa')
-    CREATE INDEX IX_Dividendos_Empresa ON Dividendos(CIK);
-
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Tempo_Data')
-    CREATE INDEX IX_Tempo_Data ON Tempo(DataCompleta);
-
-PRINT 'Índices criados com sucesso!';
+PRINT 'Dimensão Localizacao populada/atualizada com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
 GO
 
 -- ========================================
--- PARTE 6: VERIFICAÇÃO FINAL
+-- PARTE 5: POPULAR FATO PREÇO AÇÃO
+-- ========================================
+
+PRINT 'Populando fato PrecoAcao (pode demorar alguns minutos)...';
+GO
+
+-- Inserir preços das ações
+INSERT INTO PrecoAcao (
+    CIK,
+    IdTempo,
+    PrecoAbertura,
+    PrecoMaximo,
+    PrecoMinimo,
+    PrecoFechamento,
+    PrecoFechamentoAjustado,
+    Volume,
+    VariacaoDiaria,
+    VariacaoPercentual
+)
+SELECT
+    sp.cik,
+    t.IdTempo,
+    NULL,
+    NULL,
+    NULL,
+    sp.stock_price,
+    sp.stock_price,
+    sp.volume,
+    NULL,
+    sp.price_change_percent
+FROM datasets.dbo.SP500_data sp
+INNER JOIN Tempo t ON t.DataCompleta = sp.observation_date
+WHERE sp.cik IS NOT NULL
+  AND sp.observation_date IS NOT NULL
+  AND EXISTS (SELECT 1 FROM Empresas WHERE CIK = sp.cik);
+
+PRINT 'Fato PrecoAcao populado com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
+GO
+
+-- ========================================
+-- PARTE 6: POPULAR ÍNDICE SP500
+-- ========================================
+
+PRINT 'Populando Indice e IndiceSP500...';
+GO
+
+-- Criar índice S&P 500 se não existir
+IF NOT EXISTS (SELECT 1 FROM Indice WHERE NomeIndice = 'S&P 500')
+BEGIN
+    INSERT INTO Indice (NomeIndice, Descricao, Simbolo, PaisOrigem, DataCriacao)
+    VALUES ('S&P 500', 'Standard & Poor''s 500 Index', 'SPX', 'Estados Unidos', '1957-03-04');
+    PRINT 'Índice S&P 500 criado.';
+END
+GO
+
+-- Inserir valores históricos do índice
+INSERT INTO IndiceSP500 (IdIndice, DataReferencia, ValorFechamento, ValorAbertura, ValorMaximo, ValorMinimo, VolumeNegociado)
+SELECT DISTINCT
+    (SELECT IdIndice FROM Indice WHERE NomeIndice = 'S&P 500'),
+    sp.observation_date,
+    sp.sp500_index,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+FROM datasets.dbo.SP500_data sp
+WHERE sp.observation_date IS NOT NULL
+  AND sp.sp500_index IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1 FROM IndiceSP500
+      WHERE IdIndice = (SELECT IdIndice FROM Indice WHERE NomeIndice = 'S&P 500')
+        AND DataReferencia = sp.observation_date
+  );
+
+PRINT 'IndiceSP500 populado com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
+GO
+
+-- ========================================
+-- VERIFICAÇÃO FINAL
 -- ========================================
 
 PRINT '';
 PRINT '========================================';
-PRINT 'VERIFICAÇÃO FINAL';
+PRINT 'ETL CONCLUÍDO COM SUCESSO!';
 PRINT '========================================';
 GO
 
--- Verificar tabelas do master
-USE master;
+PRINT 'Contagem de registros no modelo dimensional:';
+SELECT 'Tempo' as Tabela, COUNT(*) as Total FROM Tempo
+UNION ALL SELECT 'Empresas', COUNT(*) FROM Empresas
+UNION ALL SELECT 'SubSetor', COUNT(*) FROM SubSetor
+UNION ALL SELECT 'Localizacao', COUNT(*) FROM Localizacao
+UNION ALL SELECT 'PrecoAcao', COUNT(*) FROM PrecoAcao
+UNION ALL SELECT 'Indice', COUNT(*) FROM Indice
+UNION ALL SELECT 'IndiceSP500', COUNT(*) FROM IndiceSP500;
 GO
 
-PRINT 'Tabelas no database MASTER:';
-SELECT name as TabelaMaster
-FROM sys.tables
-WHERE type = 'U'
-  AND name NOT LIKE 'spt%'
-  AND name NOT LIKE 'MS%'
-ORDER BY name;
-GO
-
--- Verificar tabelas do datasets
-USE datasets;
-GO
-
-PRINT 'Tabelas no database DATASETS:';
-SELECT name as TabelaDatasets
-FROM sys.tables
-WHERE type = 'U'
-ORDER BY name;
-GO
-
-PRINT 'Contagem de registros no DATASETS:';
-SELECT 'SP500_companies' as Tabela, COUNT(*) as Total FROM dbo.SP500_companies
-UNION ALL
-SELECT 'SP500_fred', COUNT(*) FROM dbo.SP500_fred
-UNION ALL
-SELECT 'CSI500', COUNT(*) FROM dbo.CSI500;
-GO
-
-PRINT '';
-PRINT '========================================';
-PRINT 'SETUP COMPLETO FINALIZADO COM SUCESSO!';
-PRINT '========================================';
-PRINT '';
-PRINT 'Databases criados:';
-PRINT '  - master: 8 tabelas (modelo dimensional)';
-PRINT '  - datasets: 3 tabelas (dados brutos em 1 coluna registro)';
 PRINT '';
 PRINT 'Próximos passos:';
-PRINT '  1. Atualize o DataGrip (F5)';
-PRINT '  2. Rode o script 02_processar_dados_etl.sql para quebrar as colunas';
-PRINT '  3. Depois rode as views e consultas analíticas';
+PRINT '  1. Execute scripts de análise (pasta 2-analise)';
+PRINT '  2. Crie views para responder às perguntas';
+PRINT '  3. Configure o DataGrip com ambos databases (FinanceDB + datasets)';
 PRINT '========================================';
 GO
