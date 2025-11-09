@@ -1,84 +1,0 @@
-=========================================
-SETUP AUTOMATIZADO DO PROJETO
-=========================================
-
-[1;33m[1/7] Verificando pré-requisitos...[0m
-[0;32m✓ Pré-requisitos OK[0m
-
-[1;33m[2/7] Iniciando container Docker...[0m
- Network gerenciamento-banco-de-dados_v2_default  Creating
- Network gerenciamento-banco-de-dados_v2_default  Created
- Container sqlserverCC  Creating
- Container sqlserverCC  Created
- Container sqlserverCC  Starting
- Container sqlserverCC  Started
-[0;32m✓ Container iniciado[0m
-
-[1;33m[3/7] Aguardando SQL Server inicializar (60 segundos)...[0m
-[1;33mAguardando... 60s restantes[0m[1;33mAguardando... 59s restantes[0m[1;33mAguardando... 58s restantes[0m[1;33mAguardando... 57s restantes[0m[1;33mAguardando... 56s restantes[0m[1;33mAguardando... 55s restantes[0m[1;33mAguardando... 54s restantes[0m[1;33mAguardando... 53s restantes[0m[1;33mAguardando... 52s restantes[0m[1;33mAguardando... 51s restantes[0m[1;33mAguardando... 50s restantes[0m[1;33mAguardando... 49s restantes[0m[1;33mAguardando... 48s restantes[0m[1;33mAguardando... 47s restantes[0m[1;33mAguardando... 46s restantes[0m[1;33mAguardando... 45s restantes[0m[1;33mAguardando... 44s restantes[0m[1;33mAguardando... 43s restantes[0m[1;33mAguardando... 42s restantes[0m[1;33mAguardando... 41s restantes[0m[1;33mAguardando... 40s restantes[0m[1;33mAguardando... 39s restantes[0m[1;33mAguardando... 38s restantes[0m[1;33mAguardando... 37s restantes[0m[1;33mAguardando... 36s restantes[0m[1;33mAguardando... 35s restantes[0m[1;33mAguardando... 34s restantes[0m[1;33mAguardando... 33s restantes[0m[1;33mAguardando... 32s restantes[0m[1;33mAguardando... 31s restantes[0m[1;33mAguardando... 30s restantes[0m[1;33mAguardando... 29s restantes[0m[1;33mAguardando... 28s restantes[0m[1;33mAguardando... 27s restantes[0m[1;33mAguardando... 26s restantes[0m[1;33mAguardando... 25s restantes[0m[1;33mAguardando... 24s restantes[0m[1;33mAguardando... 23s restantes[0m[1;33mAguardando... 22s restantes[0m[1;33mAguardando... 21s restantes[0m[1;33mAguardando... 20s restantes[0m[1;33mAguardando... 19s restantes[0m[1;33mAguardando... 18s restantes[0m[1;33mAguardando... 17s restantes[0m[1;33mAguardando... 16s restantes[0m[1;33mAguardando... 15s restantes[0m[1;33mAguardando... 14s restantes[0m[1;33mAguardando... 13s restantes[0m[1;33mAguardando... 12s restantes[0m[1;33mAguardando... 11s restantes[0m[1;33mAguardando... 10s restantes[0m[1;33mAguardando... 9s restantes[0m[1;33mAguardando... 8s restantes[0m[1;33mAguardando... 7s restantes[0m[1;33mAguardando... 6s restantes[0m[1;33mAguardando... 5s restantes[0m[1;33mAguardando... 4s restantes[0m[1;33mAguardando... 3s restantes[0m[1;33mAguardando... 2s restantes[0m[1;33mAguardando... 1s restantes[0m
-[0;32m✓ SQL Server deve estar pronto[0m
-
-[1;33mVerificando se SQL Server está escutando...[0m
-[0;32m✓ SQL Server está rodando[0m
-
-[1;33m[4/7] Copiando script de setup para o container...[0m
-[0;32m✓ Script copiado[0m
-
-[1;33m[5/7] Executando setup completo (pode levar 2-5 minutos)...[0m
-
-========================================
-INICIANDO SETUP DO PROJETO
-========================================
-Changed database context to 'master'.
-Verificando database datasets...
-Database datasets criado com sucesso!
-Changed database context to 'datasets'.
-Criando tabelas no database datasets...
-Tabela SP500_companies criada.
-Tabela SP500_fred criada.
-Tabela CSI500 criada.
-Tabelas do datasets criadas com sucesso!
-Iniciando importação dos dados...
-
-(503 rows affected)
-SP500_companies: Dados importados com sucesso!
-
-(2609 rows affected)
-SP500_fred: Dados importados com sucesso!
-
-(432949 rows affected)
-CSI500 part-1: Dados importados com sucesso!
-
-(432949 rows affected)
-CSI500 part-2: Dados importados com sucesso!
-Importação de dados concluída!
-Changed database context to 'master'.
-Criando tabelas do modelo dimensional no database master...
-Tabela Indice criada.
-Tabela IndiceSP500 criada.
-Tabela Empresas criada.
-Tabela SubSetor criada.
-Tabela Localizacao criada.
-Tabela Tempo criada.
-Tabela PrecoAcao criada.
-Tabela Dividendos criada.
-Criando índices...
-Índices criados com sucesso!
- 
-========================================
-VERIFICAÇÃO FINAL
-========================================
-Changed database context to 'master'.
-Tabelas no database MASTER:
-TabelaMaster                                                                                                                    
---------------------------------------------------------------------------------------------------------------------------------
-Dividendos                                                                                                                      
-Empresas                                                                                                                        
-Indice                                                                                                                          
-IndiceSP500                                                                                                                     
-Localizacao                                                                                                                     
-PrecoAcao                                                                                                                       
-SubSetor                                                                                                                        
-Tempo                                                                                                                           
-
-(8 rows affected)

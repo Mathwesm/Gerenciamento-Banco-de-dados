@@ -36,8 +36,13 @@ if [ ! -d "datasets" ]; then
     exit 1
 fi
 
-if [ ! -f "datasets/S&P-500-companies.csv" ]; then
-    echo -e "${RED}ERRO: Arquivo S&P-500-companies.csv não encontrado!${NC}"
+if [ ! -f "datasets/sp500_data_part1.csv" ]; then
+    echo -e "${RED}ERRO: Arquivo sp500_data_part1.csv não encontrado!${NC}"
+    exit 1
+fi
+
+if [ ! -f "datasets/sp500_data_part2.csv" ]; then
+    echo -e "${RED}ERRO: Arquivo sp500_data_part2.csv não encontrado!${NC}"
     exit 1
 fi
 
@@ -110,11 +115,11 @@ echo -e "${YELLOW}Databases criados:${NC}"
 docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P "Cc202505!" -Q "SELECT name FROM sys.databases WHERE name IN ('master', 'datasets') ORDER BY name" -C -h-1 -W
 
 echo ""
-echo -e "${YELLOW}Tabelas no master:${NC}"
+echo -e "${YELLOW}Tabelas no FinanceDB:${NC}"
 docker exec sqlserverCC bash -c "/opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'Cc202505!' -C -h-1 -W <<'EOF'
-USE master
+USE FinanceDB
 GO
-SELECT name FROM sys.tables WHERE type = 'U' AND name NOT LIKE 'spt%' AND name NOT LIKE 'MS%' ORDER BY name
+SELECT name FROM sys.tables WHERE type = 'U' ORDER BY name
 GO
 EOF"
 
@@ -124,11 +129,9 @@ docker exec sqlserverCC bash -c "/opt/mssql-tools18/bin/sqlcmd -S localhost -U S
 USE datasets
 GO
 SELECT
-    'SP500_companies' as Tabela,
+    'SP500_data' as Tabela,
     COUNT(*) as Total
-FROM SP500_companies
-UNION ALL
-SELECT 'SP500_fred', COUNT(*) FROM SP500_fred
+FROM SP500_data
 UNION ALL
 SELECT 'CSI500', COUNT(*) FROM CSI500
 GO
@@ -152,17 +155,17 @@ echo "  Host: localhost"
 echo "  Port: 1433"
 echo "  User: SA"
 echo "  Password: Cc202505!"
-echo "  Database: master"
+echo "  Databases: FinanceDB + datasets"
 echo ""
 echo "Próximos passos:"
 echo "  1. Abra o DataGrip"
 echo "  2. Crie uma nova conexão com as credenciais acima"
-echo "  3. Configure os schemas (datasets + master)"
+echo "  3. Configure os schemas (FinanceDB + datasets)"
 echo "  4. Faça Refresh (F5)"
-echo "  5. Abra scripts/02_consultas.sql para testar"
+echo "  5. Execute scripts de análise (pasta 2-analise)"
 echo ""
 echo "Comandos úteis:"
-echo "  docker compose ps        # Status do container"
+echo "  docker compose ps        # Status do cAontainer"
 echo "  docker compose down      # Parar container"
 echo "  docker compose up -d     # Iniciar container"
 echo ""

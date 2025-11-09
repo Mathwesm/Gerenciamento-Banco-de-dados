@@ -22,14 +22,9 @@ PRINT '';
 -- Contagem de registros em todas as tabelas
 SELECT
     'DATASETS' as Origem,
-    'SP500_companies' as Tabela,
+    'SP500_data' as Tabela,
     COUNT(*) as TotalRegistros
-FROM datasets.dbo.SP500_companies
-
-UNION ALL
-
-SELECT 'DATASETS', 'SP500_fred', COUNT(*)
-FROM datasets.dbo.SP500_fred
+FROM datasets.dbo.SP500_data
 
 UNION ALL
 
@@ -38,56 +33,56 @@ FROM datasets.dbo.CSI500
 
 UNION ALL
 
-SELECT 'MASTER', 'Empresas', COUNT(*)
-FROM master.dbo.Empresas
+SELECT 'FINANCEDB', 'Empresas', COUNT(*)
+FROM FinanceDB.dbo.Empresas
 
 UNION ALL
 
-SELECT 'MASTER', 'SubSetor', COUNT(*)
-FROM master.dbo.SubSetor
+SELECT 'FINANCEDB', 'SubSetor', COUNT(*)
+FROM FinanceDB.dbo.SubSetor
 
 UNION ALL
 
-SELECT 'MASTER', 'Localizacao', COUNT(*)
-FROM master.dbo.Localizacao
+SELECT 'FINANCEDB', 'Localizacao', COUNT(*)
+FROM FinanceDB.dbo.Localizacao
 
 UNION ALL
 
-SELECT 'MASTER', 'Indice', COUNT(*)
-FROM master.dbo.Indice
+SELECT 'FINANCEDB', 'Indice', COUNT(*)
+FROM FinanceDB.dbo.Indice
 
 UNION ALL
 
-SELECT 'MASTER', 'IndiceSP500', COUNT(*)
-FROM master.dbo.IndiceSP500
+SELECT 'FINANCEDB', 'IndiceSP500', COUNT(*)
+FROM FinanceDB.dbo.IndiceSP500
 
 UNION ALL
 
-SELECT 'MASTER', 'Tempo', COUNT(*)
-FROM master.dbo.Tempo
+SELECT 'FINANCEDB', 'Tempo', COUNT(*)
+FROM FinanceDB.dbo.Tempo
 
 UNION ALL
 
-SELECT 'MASTER', 'PrecoAcao', COUNT(*)
-FROM master.dbo.PrecoAcao
+SELECT 'FINANCEDB', 'PrecoAcao', COUNT(*)
+FROM FinanceDB.dbo.PrecoAcao
 
 UNION ALL
 
-SELECT 'MASTER', 'Dividendos', COUNT(*)
-FROM master.dbo.Dividendos
+SELECT 'FINANCEDB', 'Dividendos', COUNT(*)
+FROM FinanceDB.dbo.Dividendos
 
 ORDER BY Origem, Tabela;
 
 PRINT '';
 PRINT '========================================';
-PRINT '2. TABELAS DO DATABASE MASTER';
+PRINT '2. TABELAS DO DATABASE FINANCEDB';
 PRINT '========================================';
 PRINT '';
 
 -- ========================================
 -- TABELA: Empresas
 -- ========================================
-USE master;
+USE FinanceDB;
 GO
 
 PRINT '--- EMPRESAS (Top 10) ---';
@@ -151,9 +146,6 @@ SELECT TOP 10
     ind.NomeIndice,
     i.DataReferencia,
     i.ValorFechamento,
-    i.ValorAbertura,
-    i.ValorMaximo,
-    i.ValorMinimo,
     i.VolumeNegociado
 FROM IndiceSP500 i
 INNER JOIN Indice ind ON i.IdIndice = ind.IdIndice
@@ -169,12 +161,9 @@ SELECT TOP 10
     Mes,
     Dia,
     Trimestre,
-    Semestre,
     DiaSemana,
     NomeDiaSemana,
-    NomeMes,
-    EhFimDeSemana,
-    EhFeriado
+    NomeMes
 FROM Tempo
 ORDER BY DataCompleta DESC;
 GO
@@ -186,9 +175,6 @@ SELECT TOP 10
     e.Ticker,
     e.NomeEmpresa,
     t.DataCompleta,
-    p.PrecoAbertura,
-    p.PrecoMaximo,
-    p.PrecoMinimo,
     p.PrecoFechamento,
     p.Volume,
     p.VariacaoPercentual
@@ -198,31 +184,55 @@ INNER JOIN Tempo t ON p.IdTempo = t.IdTempo
 ORDER BY t.DataCompleta DESC;
 GO
 
-PRINT '';
-PRINT '--- DIVIDENDOS (Top 10) ---';
-SELECT TOP 10
-    d.IdDividendo,
-    e.Ticker,
-    e.NomeEmpresa,
-    t.DataCompleta,
-    d.ValorDividendo,
-    d.TipoDividendo,
-    d.FrequenciaPagamento,
-    d.DataExDividendo,
-    d.DataPagamento
-FROM Dividendos d
-INNER JOIN Empresas e ON d.CIK = e.CIK
-INNER JOIN Tempo t ON d.IdTempo = t.IdTempo
-ORDER BY t.DataCompleta DESC;
-GO
-
 -- ========================================
--- PARTE 3: ANÁLISES RÁPIDAS
+-- PARTE 3: DADOS BRUTOS (DATASETS)
 -- ========================================
 
 PRINT '';
 PRINT '========================================';
-PRINT '3. ANÁLISES RÁPIDAS';
+PRINT '3. DADOS BRUTOS (DATABASE DATASETS)';
+PRINT '========================================';
+PRINT '';
+
+USE datasets;
+GO
+
+PRINT '--- SP500_DATA (Primeiras 5 empresas) ---';
+SELECT TOP 5
+    id,
+    symbol,
+    company_name,
+    sector,
+    observation_date,
+    stock_price,
+    volume
+FROM SP500_data
+ORDER BY id;
+GO
+
+PRINT '';
+PRINT '--- CSI500 (Primeiras 5 empresas chinesas) ---';
+SELECT TOP 5
+    codigo_empresa,
+    [date],
+    [close],
+    volume,
+    nome_empresa_en,
+    industry_en
+FROM CSI500
+ORDER BY [date] DESC;
+GO
+
+-- ========================================
+-- PARTE 4: ANÁLISES RÁPIDAS
+-- ========================================
+
+USE FinanceDB;
+GO
+
+PRINT '';
+PRINT '========================================';
+PRINT '4. ANÁLISES RÁPIDAS';
 PRINT '========================================';
 PRINT '';
 
@@ -249,123 +259,27 @@ GROUP BY l.Estado
 ORDER BY TotalEmpresas DESC;
 GO
 
--- Empresas mais antigas
-PRINT '';
-PRINT '--- TOP 10 EMPRESAS MAIS ANTIGAS ---';
-SELECT TOP 10
-    Ticker,
-    NomeEmpresa,
-    AnoFundacao,
-    Setor
-FROM Empresas
-WHERE AnoFundacao IS NOT NULL
-ORDER BY AnoFundacao ASC;
-GO
-
--- Variação do índice S&P 500
-PRINT '';
-PRINT '--- VARIAÇÃO DO ÍNDICE S&P 500 (últimos 10 dias) ---';
-SELECT TOP 10
-    DataReferencia,
-    ValorFechamento,
-    LAG(ValorFechamento) OVER (ORDER BY DataReferencia) as ValorAnterior,
-    ValorFechamento - LAG(ValorFechamento) OVER (ORDER BY DataReferencia) as Variacao,
-    CASE
-        WHEN LAG(ValorFechamento) OVER (ORDER BY DataReferencia) IS NOT NULL
-        THEN CAST((ValorFechamento - LAG(ValorFechamento) OVER (ORDER BY DataReferencia)) /
-                  LAG(ValorFechamento) OVER (ORDER BY DataReferencia) * 100 AS DECIMAL(10,2))
-        ELSE NULL
-    END as VariacaoPercentual
-FROM IndiceSP500
-ORDER BY DataReferencia DESC;
-GO
-
 -- Período de dados disponíveis
 PRINT '';
 PRINT '--- PERÍODO DE DADOS DISPONÍVEIS ---';
 SELECT
-    'Índice S&P 500' as Fonte,
-    MIN(DataReferencia) as DataInicio,
-    MAX(DataReferencia) as DataFim,
-    DATEDIFF(DAY, MIN(DataReferencia), MAX(DataReferencia)) as TotalDias
-FROM IndiceSP500
+    'S&P 500 Data' as Fonte,
+    MIN(observation_date) as DataInicio,
+    MAX(observation_date) as DataFim,
+    COUNT(DISTINCT observation_date) as TotalDias,
+    COUNT(DISTINCT symbol) as TotalEmpresas
+FROM datasets.dbo.SP500_data;
+GO
 
-UNION ALL
-
+PRINT '';
+PRINT '--- PERÍODO CSI500 ---';
 SELECT
-    'Dimensão Tempo',
-    MIN(DataCompleta),
-    MAX(DataCompleta),
-    DATEDIFF(DAY, MIN(DataCompleta), MAX(DataCompleta))
-FROM Tempo;
-GO
-
--- ========================================
--- PARTE 4: VERIFICAÇÃO DE INTEGRIDADE
--- ========================================
-
-PRINT '';
-PRINT '========================================';
-PRINT '4. VERIFICAÇÃO DE INTEGRIDADE';
-PRINT '========================================';
-PRINT '';
-
--- Empresas sem localização
-PRINT '--- EMPRESAS SEM LOCALIZAÇÃO ---';
-SELECT COUNT(*) as TotalSemLocalizacao
-FROM Empresas e
-WHERE NOT EXISTS (SELECT 1 FROM Localizacao l WHERE l.CIK = e.CIK);
-GO
-
--- Empresas sem subsetor
-PRINT '';
-PRINT '--- EMPRESAS SEM SUBSETOR ---';
-SELECT COUNT(*) as TotalSemSubsetor
-FROM Empresas e
-WHERE NOT EXISTS (SELECT 1 FROM SubSetor s WHERE s.CIK = e.CIK);
-GO
-
--- Registros na dimensão Tempo
-PRINT '';
-PRINT '--- DIMENSÃO TEMPO - DISTRIBUIÇÃO POR ANO ---';
-SELECT
-    Ano,
-    COUNT(*) as TotalDias,
-    MIN(DataCompleta) as PrimeiraData,
-    MAX(DataCompleta) as UltimaData
-FROM Tempo
-GROUP BY Ano
-ORDER BY Ano DESC;
-GO
-
--- ========================================
--- PARTE 5: DADOS BRUTOS (DATASETS)
--- ========================================
-
-PRINT '';
-PRINT '========================================';
-PRINT '5. DADOS BRUTOS (DATABASE DATASETS)';
-PRINT '========================================';
-PRINT '';
-
-USE datasets;
-GO
-
-PRINT '--- SP500_COMPANIES (Primeiros 5 registros brutos) ---';
-SELECT TOP 5 registro
-FROM SP500_companies;
-GO
-
-PRINT '';
-PRINT '--- SP500_FRED (Primeiros 5 registros brutos) ---';
-SELECT TOP 5 registro
-FROM SP500_fred;
-GO
-
-PRINT '';
-PRINT '--- CSI500 (Primeiros 5 registros brutos) ---';
-SELECT TOP 5 registro
-FROM CSI500;
+    'CSI 500' as Fonte,
+    MIN([date]) as DataInicio,
+    MAX([date]) as DataFim,
+    COUNT(DISTINCT [date]) as TotalDias,
+    COUNT(DISTINCT codigo_empresa) as TotalEmpresas
+FROM datasets.dbo.CSI500;
 GO
 
 -- ========================================
@@ -374,18 +288,16 @@ GO
 
 PRINT '';
 PRINT '========================================';
-PRINT '✅ VISUALIZAÇÃO COMPLETA FINALIZADA!';
+PRINT 'VISUALIZAÇÃO COMPLETA FINALIZADA!';
 PRINT '========================================';
 PRINT '';
 PRINT 'Resumo:';
-PRINT '  ✓ Todas as tabelas foram consultadas';
-PRINT '  ✓ Análises rápidas executadas';
-PRINT '  ✓ Verificação de integridade realizada';
+PRINT '  - Todas as tabelas foram consultadas';
+PRINT '  - Análises rápidas executadas';
 PRINT '';
 PRINT 'Para análises mais detalhadas:';
-PRINT '  - Crie suas próprias queries personalizadas';
-PRINT '  - Use JOIN entre tabelas para análises cruzadas';
-PRINT '  - Explore os relacionamentos entre as tabelas';
+PRINT '  - Execute os scripts na pasta 2-analise';
+PRINT '  - Crie views personalizadas';
 PRINT '';
 PRINT '========================================';
 GO

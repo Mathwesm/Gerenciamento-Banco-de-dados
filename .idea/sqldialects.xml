@@ -3,7 +3,10 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/scripts/1-setup/01_setup_completo.sql" dialect="TSQL" />
     <file url="file://$PROJECT_DIR$/scripts/1-setup/02_processar_dados_etl.sql" dialect="TSQL" />
-    <file url="file://$PROJECT_DIR$/scripts/2-consultas/teste_conexao_datagrip.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/scripts/2-analise/01_analise_sp500.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/scripts/2-analise/02_analise_csi500.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/scripts/2-analise/03_criar_views_analise.sql" dialect="TSQL" />
     <file url="file://$PROJECT_DIR$/scripts/2-consultas/visualizar_tabelas.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/scripts/3-manutencao/limpar_dados.sql" dialect="TSQL" />
   </component>
 </project>
