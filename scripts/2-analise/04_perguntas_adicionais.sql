@@ -8,17 +8,19 @@
 USE FinanceDB;
 GO
 
-PRINT '========================================';
-PRINT 'PERGUNTAS ADICIONAIS DE ANÁLISE';
-PRINT '========================================';
-PRINT '';
-GO
+/* ==========================================================
+   PERGUNTA 4: Ações com crescimento consistente nos últimos anos
+   --------------------------------------------------------------
+   Ajustes:
+   - Sem filtro de "últimos 5 anos" por enquanto (para garantir dados).
+   - Exige pelo menos 2 anos de histórico por empresa (TotalAnos >= 2).
+   Se quiser, depois você pode:
+   - Reativar o filtro de 5 anos
+   - Aumentar para TotalAnos >= 4
+   ========================================================== */
 
--- ========================================
--- PERGUNTA 4: Ações com crescimento consistente nos últimos 5 anos
--- ========================================
 PRINT '========================================';
-PRINT 'PERGUNTA 4: Crescimento Consistente (5 anos)';
+PRINT 'PERGUNTA 4: Crescimento Consistente (multiplos anos)';
 PRINT '========================================';
 PRINT '';
 GO
@@ -35,7 +37,8 @@ WITH PrecosPorAno AS (
     INNER JOIN Empresas e ON p.CIK = e.CIK
     INNER JOIN Tempo t ON p.IdTempo = t.IdTempo
     WHERE p.PrecoFechamento IS NOT NULL
-      AND t.DataCompleta >= DATEADD(YEAR, -5, (SELECT MAX(DataCompleta) FROM Tempo))
+      -- Se quiser limitar para últimos 5 anos, descomente:
+      -- AND t.DataCompleta >= DATEADD(YEAR, -5, (SELECT MAX(DataCompleta) FROM Tempo))
     GROUP BY e.CIK, e.Ticker, e.NomeEmpresa, e.Setor, YEAR(t.DataCompleta)
 ),
 CrescimentoAnual AS (
@@ -79,15 +82,9 @@ SELECT TOP 30
     CAST((CAST(AnosPositivos AS FLOAT) / TotalAnos * 100) AS DECIMAL(10, 2)) AS TaxaConsistencia,
     CAST(CrescimentoMedioAnual AS DECIMAL(10, 2)) AS CrescimentoMedioAnual_Pct,
     CAST(PiorAno AS DECIMAL(10, 2)) AS PiorAno_Pct,
-    CAST(MelhorAno AS DECIMAL(10, 2)) AS MelhorAno_Pct,
-    CASE
-        WHEN AnosPositivos = TotalAnos THEN 'Crescimento Total'
-        WHEN CAST(AnosPositivos AS FLOAT) / TotalAnos >= 0.8 THEN 'Altamente Consistente'
-        WHEN CAST(AnosPositivos AS FLOAT) / TotalAnos >= 0.6 THEN 'Consistente'
-        ELSE 'Volátil'
-    END AS Classificacao
+    CAST(MelhorAno AS DECIMAL(10, 2)) AS MelhorAno_Pct
 FROM AnosPositivos
-WHERE TotalAnos >= 4  -- Pelo menos 4 anos de dados
+WHERE TotalAnos >= 2  -- Pelo menos 2 anos de dados (ajuste se quiser ficar mais restrito)
 ORDER BY TaxaConsistencia DESC, CrescimentoMedioAnual DESC;
 GO
 
@@ -97,6 +94,7 @@ GO
 -- ========================================
 -- PERGUNTA 5: Setores com melhor desempenho médio no S&P 500
 -- ========================================
+
 PRINT '========================================';
 PRINT 'PERGUNTA 5: Desempenho Setores no S&P 500';
 PRINT '========================================';
@@ -117,13 +115,6 @@ WITH DesempenhoSetorial AS (
     INNER JOIN Tempo t ON p.IdTempo = t.IdTempo
     WHERE p.PrecoFechamento IS NOT NULL
     GROUP BY e.Setor
-),
-CorrelacaoIndice AS (
-    SELECT
-        YEAR(s.DataReferencia) AS Ano,
-        AVG(s.ValorFechamento) AS ValorMedioSP500
-    FROM SP500Historico s
-    GROUP BY YEAR(s.DataReferencia)
 )
 SELECT
     d.Setor,
@@ -139,6 +130,7 @@ SELECT
         ELSE 'Baixo Desempenho'
     END AS ClassificacaoDesempenho
 FROM DesempenhoSetorial d
+-- Se muitos setores estiverem NULL, você pode comentar a linha abaixo:
 WHERE d.Setor IS NOT NULL
 ORDER BY d.VariacaoMediaDiaria DESC;
 GO
@@ -149,6 +141,9 @@ GO
 -- ========================================
 -- PERGUNTA 6: Ações com maior queda na crise COVID (Mar-Abr 2020)
 -- ========================================
+-- Observação: se sua base NÃO tiver dados em 2020, é esperado que venha vazio.
+-- Nesse caso, você pode adaptar os períodos para algo relativo ao MAX(DataCompleta).
+
 PRINT '========================================';
 PRINT 'PERGUNTA 6: Quedas na Crise COVID-19';
 PRINT '========================================';
@@ -222,6 +217,7 @@ GO
 -- ========================================
 -- PERGUNTA 7: Retorno médio de dividendos por setor e empresa
 -- ========================================
+
 PRINT '========================================';
 PRINT 'PERGUNTA 7: Dividendos por Setor e Empresa';
 PRINT '========================================';
@@ -252,7 +248,7 @@ ORDER BY DividendoMedio_Pct DESC;
 GO
 
 PRINT '';
-PRINT 'TOP 30 EMPRESAS COM MAIORES DIVIDENDOS:';
+PRINT 'TOP 30 EMPRESAS COM MAIORES DIVIDENDOS (ajustado para bases menores):';
 SELECT TOP 30
     e.Ticker,
     e.NomeEmpresa,
@@ -268,7 +264,7 @@ FROM Empresas e
 INNER JOIN Dividendos d ON e.CIK = d.CIK
 INNER JOIN Tempo t ON d.IdTempo = t.IdTempo
 GROUP BY e.Ticker, e.NomeEmpresa, e.Setor
-HAVING COUNT(d.IdDividendo) > 100  -- Pelo menos 100 pagamentos
+HAVING COUNT(d.IdDividendo) >= 10  -- Ajustado: antes era > 100
 ORDER BY DividendoMedio_Pct DESC;
 GO
 
@@ -278,6 +274,7 @@ GO
 -- ========================================
 -- PERGUNTA 8: Relação entre Market Cap e Performance
 -- ========================================
+
 PRINT '========================================';
 PRINT 'PERGUNTA 8: Market Cap vs Performance';
 PRINT '========================================';
@@ -289,7 +286,7 @@ WITH MarketCapAtual AS (
         sp.cik,
         AVG(TRY_CAST(sp.market_cap AS DECIMAL(20, 2))) AS MarketCapMedia
     FROM datasets.dbo.SP500_data sp
-    WHERE sp.observation_date >= DATEADD(MONTH, -3, (SELECT MAX(observation_date) FROM datasets.dbo.SP500_data))
+    WHERE sp.observation_date >= DATEADD(MONTH, -6, (SELECT MAX(observation_date) FROM datasets.dbo.SP500_data))
       AND sp.market_cap IS NOT NULL
     GROUP BY sp.cik
 ),
@@ -335,6 +332,7 @@ GO
 -- ========================================
 -- PERGUNTA 9: Empresas antigas (fundadas antes de 1950) com boa performance
 -- ========================================
+
 PRINT '========================================';
 PRINT 'PERGUNTA 9: Empresas Antigas com Boa Performance';
 PRINT '========================================';
@@ -376,7 +374,7 @@ SELECT
 FROM Empresas e
 INNER JOIN PerformanceRecente pr ON e.CIK = pr.CIK
 WHERE e.AnoFundacao IS NOT NULL
-  AND e.AnoFundacao < 1950
+  AND e.AnoFundacao < 1950  -- Se vier vazio, pode testar com < 1980 só para ver o comportamento.
 ORDER BY e.AnoFundacao ASC, pr.VariacaoMedia DESC;
 GO
 
@@ -386,6 +384,7 @@ GO
 -- ========================================
 -- PERGUNTA 10: Distribuição geográfica por setor (foco em Tech)
 -- ========================================
+
 PRINT '========================================';
 PRINT 'PERGUNTA 10: Distribuição Geográfica por Setor';
 PRINT '========================================';
@@ -406,7 +405,8 @@ FROM Localizacao l
 INNER JOIN Empresas e ON l.CIK = e.CIK
 WHERE l.Estado IS NOT NULL
 GROUP BY LTRIM(RTRIM(REPLACE(REPLACE(l.Estado, '"', ''), '''', '')))
-HAVING COUNT(*) >= 3  -- Pelo menos 3 empresas
+-- Se tiver poucos registros por estado, pode comentar o HAVING abaixo:
+-- HAVING COUNT(*) >= 3  -- Pelo menos 3 empresas
 ORDER BY TotalEmpresas DESC, PctTech DESC;
 GO
 
@@ -435,7 +435,8 @@ SELECT TOP 10
 FROM Localizacao l
 INNER JOIN Empresas e ON l.CIK = e.CIK
 WHERE l.Cidade IS NOT NULL
-GROUP BY LTRIM(RTRIM(REPLACE(REPLACE(l.Cidade, '"', ''), '''', ''))), LTRIM(RTRIM(REPLACE(REPLACE(l.Estado, '"', ''), '''', '')))
+GROUP BY LTRIM(RTRIM(REPLACE(REPLACE(l.Cidade, '"', ''), '''', ''))),
+         LTRIM(RTRIM(REPLACE(REPLACE(l.Estado, '"', ''), '''', '')))
 ORDER BY TotalEmpresas DESC;
 GO
 

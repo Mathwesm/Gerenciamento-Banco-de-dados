@@ -15,48 +15,46 @@ PRINT '';
 GO
 
 -- ========================================
--- VIEW 1: Valorização por Ação (Últimos 6 meses)
+-- VIEW 1: Valorização por Ação (TODO O PERÍODO DISPONÍVEL)
+--  - Pega o PRIMEIRO e o ÚLTIMO preço da ação no histórico
 -- ========================================
 IF OBJECT_ID('vw_ValorizacaoAcoes', 'V') IS NOT NULL DROP VIEW vw_ValorizacaoAcoes;
 GO
 
 CREATE VIEW vw_ValorizacaoAcoes AS
-WITH UltimaData AS (
-    SELECT MAX(DataCompleta) AS DataFinal
-    FROM Tempo
-),
-PrimeiraData AS (
-    SELECT MIN(DataCompleta) AS DataInicial
-    FROM Tempo
-    WHERE DataCompleta >= DATEADD(MONTH, -6, (SELECT DataFinal FROM UltimaData))
-),
-PrecoInicial AS (
+WITH Dados AS (
     SELECT
         p.CIK,
         e.Ticker,
         e.NomeEmpresa,
         e.Setor,
-        MIN(t.DataCompleta) AS DataInicial,
-        AVG(p.PrecoFechamento) AS PrecoInicial
+        t.DataCompleta,
+        p.PrecoFechamento,
+        ROW_NUMBER() OVER (PARTITION BY p.CIK ORDER BY t.DataCompleta ASC)  AS rn_inicial,
+        ROW_NUMBER() OVER (PARTITION BY p.CIK ORDER BY t.DataCompleta DESC) AS rn_final
     FROM PrecoAcao p
     INNER JOIN Empresas e ON p.CIK = e.CIK
-    INNER JOIN Tempo t ON p.IdTempo = t.IdTempo
-    CROSS JOIN PrimeiraData pd
-    WHERE t.DataCompleta BETWEEN pd.DataInicial AND DATEADD(DAY, 7, pd.DataInicial)
-      AND p.PrecoFechamento IS NOT NULL
-    GROUP BY p.CIK, e.Ticker, e.NomeEmpresa, e.Setor
+    INNER JOIN Tempo t    ON p.IdTempo = t.IdTempo
+    WHERE p.PrecoFechamento IS NOT NULL
+),
+PrecoInicial AS (
+    SELECT
+        CIK,
+        Ticker,
+        NomeEmpresa,
+        Setor,
+        DataCompleta AS DataInicial,
+        PrecoFechamento AS PrecoInicial
+    FROM Dados
+    WHERE rn_inicial = 1
 ),
 PrecoFinal AS (
     SELECT
-        p.CIK,
-        MAX(t.DataCompleta) AS DataFinal,
-        AVG(p.PrecoFechamento) AS PrecoFinal
-    FROM PrecoAcao p
-    INNER JOIN Tempo t ON p.IdTempo = t.IdTempo
-    CROSS JOIN UltimaData ud
-    WHERE t.DataCompleta >= DATEADD(DAY, -7, ud.DataFinal)
-      AND p.PrecoFechamento IS NOT NULL
-    GROUP BY p.CIK
+        CIK,
+        DataCompleta AS DataFinal,
+        PrecoFechamento AS PrecoFinal
+    FROM Dados
+    WHERE rn_final = 1
 )
 SELECT
     pi.CIK,
@@ -72,7 +70,7 @@ SELECT
     CASE
         WHEN ((pf.PrecoFinal - pi.PrecoInicial) / NULLIF(pi.PrecoInicial, 0) * 100) > 50 THEN 'Crescimento Excepcional'
         WHEN ((pf.PrecoFinal - pi.PrecoInicial) / NULLIF(pi.PrecoInicial, 0) * 100) > 20 THEN 'Alto Crescimento'
-        WHEN ((pf.PrecoFinal - pi.PrecoInicial) / NULLIF(pi.PrecoInicial, 0) * 100) > 0 THEN 'Crescimento Moderado'
+        WHEN ((pf.PrecoFinal - pi.PrecoInicial) / NULLIF(pi.PrecoInicial, 0) * 100) > 0  THEN 'Crescimento Moderado'
         WHEN ((pf.PrecoFinal - pi.PrecoInicial) / NULLIF(pi.PrecoInicial, 0) * 100) > -20 THEN 'Queda Moderada'
         ELSE 'Queda Significativa'
     END AS CategoriaDesempenho
@@ -85,7 +83,7 @@ PRINT 'VIEW vw_ValorizacaoAcoes criada.';
 GO
 
 -- ========================================
--- VIEW 2: Volatilidade por Setor
+-- VIEW 2: Volatilidade por Setor (TODO PERÍODO)
 -- ========================================
 IF OBJECT_ID('vw_VolatilidadeSetor', 'V') IS NOT NULL DROP VIEW vw_VolatilidadeSetor;
 GO
@@ -136,7 +134,7 @@ PRINT 'VIEW vw_VolatilidadeSetor criada.';
 GO
 
 -- ========================================
--- VIEW 3: Volume de Negociação por Empresa
+-- VIEW 3: Volume de Negociação por Empresa (TODO PERÍODO)
 -- ========================================
 IF OBJECT_ID('vw_VolumeNegociacao', 'V') IS NOT NULL DROP VIEW vw_VolumeNegociacao;
 GO
@@ -157,7 +155,6 @@ FROM PrecoAcao p
 INNER JOIN Empresas e ON p.CIK = e.CIK
 INNER JOIN Tempo t ON p.IdTempo = t.IdTempo
 WHERE p.Volume IS NOT NULL
-  AND t.DataCompleta >= DATEADD(MONTH, -6, (SELECT MAX(DataCompleta) FROM Tempo))
 GROUP BY e.CIK, e.Ticker, e.NomeEmpresa, e.Setor;
 GO
 

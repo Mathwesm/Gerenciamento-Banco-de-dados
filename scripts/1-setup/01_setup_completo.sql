@@ -439,6 +439,7 @@ BEGIN
 END
 GO
 
+
 -- Tabela: PrecoAcao
 IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'PrecoAcao')
 BEGIN
