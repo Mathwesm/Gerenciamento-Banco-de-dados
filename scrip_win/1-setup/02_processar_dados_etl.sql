@@ -515,7 +515,7 @@ GO
 
 PRINT '';
 PRINT 'Próximos passos:';
-PRINT '  1. Execute scripts de análise (pasta 2-analise)';
+PRINT '  1. Execute scripts_linux de análise (pasta 2-analise)';
 PRINT '  2. Crie views para responder às perguntas';
 PRINT '  3. Configure o DataGrip com ambos databases (FinanceDB + datasets)';
 PRINT '========================================';

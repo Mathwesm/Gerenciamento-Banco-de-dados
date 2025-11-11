@@ -4,7 +4,7 @@
 
 $ErrorActionPreference = "Stop"
 
-# Navegar para o diretório raiz do projeto (pasta pai de scripts-windows)
+# Navegar para o diretório raiz do projeto (pasta pai de scripts_linux-windows)
 Set-Location (Join-Path $PSScriptRoot "..")
 
 # Função para escrever com cor
@@ -44,14 +44,14 @@ switch ($choice) {
         if ($confirm -match '^[sS]$') {
             Write-Host ""
             Write-Green "Copiando script para o container..."
-            docker cp "scripts/3-manutencao/limpar_dados.sql" "sqlserverCC:/tmp/limpar_dados.sql"
+            docker cp "scripts_linux/3-manutencao/limpar_dados.sql" "sqlserverCC:/tmp/limpar_dados.sql"
 
             Write-Green "Executando limpeza de dados..."
             docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P "Cc202505!" -i "/tmp/limpar_dados.sql" -C
 
             Write-Host ""
             Write-Green "Limpeza de dados concluída!"
-            Write-Host "Para reimportar dados, execute: scripts-windows\1_setup_automatico.ps1"
+            Write-Host "Para reimportar dados, execute: scripts_linux-windows\1_setup_automatico.ps1"
         }
         else {
             Write-Red "Operação cancelada."
@@ -72,14 +72,14 @@ switch ($choice) {
         if ($confirm -eq "RESETAR") {
             Write-Host ""
             Write-Yellow "Copiando script para o container..."
-            docker cp "scripts/3-manutencao/resetar_tudo.sql" "sqlserverCC:/tmp/resetar_tudo.sql"
+            docker cp "scripts_linux/3-manutencao/resetar_tudo.sql" "sqlserverCC:/tmp/resetar_tudo.sql"
 
             Write-Yellow "Executando reset completo..."
             docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P "Cc202505!" -i "/tmp/resetar_tudo.sql" -C
 
             Write-Host ""
             Write-Green "Reset completo finalizado!"
-            Write-Host "Para recriar tudo do zero, execute: scripts-windows\1_setup_automatico.ps1"
+            Write-Host "Para recriar tudo do zero, execute: scripts_linux-windows\1_setup_automatico.ps1"
         }
         else {
             Write-Red "Operação cancelada (confirmação incorreta)."

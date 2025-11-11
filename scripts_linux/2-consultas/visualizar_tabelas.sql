@@ -295,7 +295,7 @@ PRINT '  - Todas as tabelas foram consultadas';
 PRINT '  - Análises rápidas executadas';
 PRINT '';
 PRINT 'Para análises mais detalhadas:';
-PRINT '  - Execute os scripts na pasta 2-analise';
+PRINT '  - Execute os scripts_linux na pasta 2-analise';
 PRINT '  - Crie views personalizadas';
 PRINT '';
 PRINT '========================================';

@@ -623,6 +623,6 @@ PRINT '';
 PRINT 'Proximos passos:';
 PRINT '  1. Execute 02_processar_dados_etl.sql';
 PRINT '  2. Atualize o DataGrip (F5)';
-PRINT '  3. Execute scripts de análise';
+PRINT '  3. Execute scripts_linux de análise';
 PRINT '========================================';
 GO

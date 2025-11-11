@@ -57,8 +57,8 @@ if ([string]::IsNullOrWhiteSpace($dbCheck) -or $dbCheck.Trim() -eq "NULL") {
 Write-Host "✓ Banco de dados existe" -ForegroundColor Green
 Write-Host ""
 
-# Copiar scripts para o container
-Write-Host ">>> Copiando scripts para o container..." -ForegroundColor Yellow
+# Copiar scripts_linux para o container
+Write-Host ">>> Copiando scripts_linux para o container..." -ForegroundColor Yellow
 docker cp "$SCRIPT_DIR\01_criar_tabelas_normalizadas.sql" ${CONTAINER_NAME}:/tmp/
 docker cp "$SCRIPT_DIR\02_queries_analise.sql" ${CONTAINER_NAME}:/tmp/
 docker cp "$SCRIPT_DIR\03_executar_analise_completa.sql" ${CONTAINER_NAME}:/tmp/

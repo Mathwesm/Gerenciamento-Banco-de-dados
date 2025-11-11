@@ -66,7 +66,7 @@ scripts/
 ├── 1-setup/
 │   ├── 01_setup_completo.sql      # Cria tabelas e importa CSVs
 │   ├── 02_processar_dados_etl.sql # Processa dados (ETL)
-│   └── teste.sql                   # Testes
+│   └── data_valor_maximo.sql                   # Testes
 └── 2-analise/
     ├── 01_analise_sp500.sql        # Análises do S&P 500
     ├── 02_analise_csi500.sql       # Análises do CSI500

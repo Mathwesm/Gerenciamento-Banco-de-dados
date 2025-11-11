@@ -160,12 +160,12 @@ Write-Host ""
 # ========================================
 Write-Host "[4/7] Copying setup script into container..."
 
-if (-not (Test-Path "scripts/1-setup/01_setup_completo.sql")) {
-    Write-Host "ERROR: File scripts/1-setup/01_setup_completo.sql not found!"
+if (-not (Test-Path "scripts_linux/1-setup/01_setup_completo.sql")) {
+    Write-Host "ERROR: File scripts_linux/1-setup/01_setup_completo.sql not found!"
     exit 1
 }
 
-docker cp "scripts/1-setup/01_setup_completo.sql" "${containerName}:/tmp/01_setup_completo.sql"
+docker cp "scripts_linux/1-setup/01_setup_completo.sql" "${containerName}:/tmp/01_setup_completo.sql"
 
 Write-Host "Setup script copied."
 Write-Host ""
@@ -235,7 +235,7 @@ Write-Host "  1. Open DataGrip"
 Write-Host "  2. Create a new connection using the credentials above"
 Write-Host "  3. Check schemas FinanceDB and datasets"
 Write-Host "  4. Refresh (F5)"
-Write-Host "  5. Run analysis scripts (folder 2-analise)"
+Write-Host "  5. Run analysis scripts_linux (folder 2-analise)"
 Write-Host ""
 Write-Host "Useful Docker commands:"
 Write-Host "  docker compose ps        # Container status"
