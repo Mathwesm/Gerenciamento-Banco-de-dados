@@ -13,13 +13,13 @@ O objetivo é avaliar as situações do mercado financeiro americano e chines em
 
 ## Índice
 
-- [Visão Geral](##-visão-geral)
-- [Estrutura dos Datasets](##-estrutura-dos-datasets)
-- [Estrutura do Projeto](##-estrutura-do-projeto)
-- [Análises Disponíveis](##-análises-disponíveis)
-- [Principais Perguntas a serem respondidas](##-principais-perguntas-a-serem-respondidas)
-- [Setup Ambiente](##-setup-ambiente)
-- [Uso](##-uso)
+- [Visão Geral](#visão-geral)
+- [Estrutura dos Datasets](#estrutura-dos-datasets)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Análises Disponíveis](#análises-disponíveis)
+- [Principais Perguntas a serem respondidas](#principais-perguntas-a-serem-respondidas)
+- [Setup Ambiente](#setup-ambiente)
+- [Uso](#uso)
 
 ---
 
