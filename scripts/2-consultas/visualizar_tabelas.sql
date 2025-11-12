@@ -1,30 +1,9 @@
--- ========================================
--- SCRIPT: VISUALIZAR DADOS DAS TABELAS
--- ========================================
--- Descrição: Mostra os dados de todas as tabelas do projeto
--- Use este script para verificar se os dados foram processados corretamente
--- ========================================
-
-PRINT '========================================';
-PRINT 'VISUALIZAÇÃO DE DADOS - TODAS AS TABELAS';
-PRINT '========================================';
-PRINT '';
-
--- ========================================
--- PARTE 1: RESUMO GERAL
--- ========================================
-
-PRINT '========================================';
-PRINT '1. RESUMO GERAL';
-PRINT '========================================';
-PRINT '';
-
--- Contagem de registros em todas as tabelas
+use FinanceDB
 SELECT
     'DATASETS' as Origem,
     'SP500_data' as Tabela,
     COUNT(*) as TotalRegistros
-FROM datasets.dbo.SP500_data
+FROM datasets.dbo.SP500
 
 UNION ALL
 
@@ -68,19 +47,11 @@ FROM FinanceDB.dbo.Dividendos
 
 ORDER BY Origem, Tabela;
 
-PRINT '';
-PRINT '========================================';
-PRINT '2. TABELAS DO DATABASE FINANCEDB';
-PRINT '========================================';
-PRINT '';
 
--- ========================================
--- TABELA: Empresas
--- ========================================
 USE FinanceDB;
 GO
 
-PRINT '--- EMPRESAS (Top 10) ---';
+
 SELECT TOP 10
     CIK,
     NomeEmpresa,
@@ -92,8 +63,7 @@ FROM Empresas
 ORDER BY NomeEmpresa;
 GO
 
-PRINT '';
-PRINT '--- SUBSETOR (Top 10) ---';
+
 SELECT TOP 10
     s.IdSubSetor,
     e.Ticker,
@@ -106,8 +76,7 @@ INNER JOIN Empresas e ON s.CIK = e.CIK
 ORDER BY e.NomeEmpresa;
 GO
 
-PRINT '';
-PRINT '--- LOCALIZACAO (Top 10) ---';
+
 SELECT TOP 10
     l.IdLocalizacao,
     e.Ticker,
@@ -121,8 +90,6 @@ INNER JOIN Empresas e ON l.CIK = e.CIK
 ORDER BY e.NomeEmpresa;
 GO
 
-PRINT '';
-PRINT '--- SP500 HISTORICO (Top 10 mais recentes) ---';
 SELECT TOP 10
     IdSP500,
     DataReferencia,
@@ -135,8 +102,7 @@ FROM SP500Historico
 ORDER BY DataReferencia DESC;
 GO
 
-PRINT '';
-PRINT '--- TEMPO (Top 10 mais recentes) ---';
+
 SELECT TOP 10
     IdTempo,
     DataCompleta,
@@ -151,8 +117,6 @@ FROM Tempo
 ORDER BY DataCompleta DESC;
 GO
 
-PRINT '';
-PRINT '--- PRECO ACAO (Top 10) ---';
 SELECT TOP 10
     p.IdPrecoAcao,
     e.Ticker,
@@ -167,8 +131,7 @@ INNER JOIN Tempo t ON p.IdTempo = t.IdTempo
 ORDER BY t.DataCompleta DESC;
 GO
 
-PRINT '';
-PRINT '--- DIVIDENDOS (Top 10 maiores) ---';
+
 SELECT TOP 10
     d.IdDividendo,
     e.Ticker,
@@ -183,20 +146,9 @@ INNER JOIN Tempo t ON d.IdTempo = t.IdTempo
 ORDER BY d.ValorDividendo DESC;
 GO
 
--- ========================================
--- PARTE 3: DADOS BRUTOS (DATASETS)
--- ========================================
-
-PRINT '';
-PRINT '========================================';
-PRINT '3. DADOS BRUTOS (DATABASE DATASETS)';
-PRINT '========================================';
-PRINT '';
-
 USE datasets;
 GO
 
-PRINT '--- SP500_DATA (Primeiras 5 empresas) ---';
 SELECT TOP 5
     id,
     symbol,
@@ -205,12 +157,11 @@ SELECT TOP 5
     observation_date,
     close_price AS stock_price,
     volume
-FROM SP500_data
+FROM SP500
 ORDER BY id;
 GO
 
-PRINT '';
-PRINT '--- CSI500 (Primeiras 5 empresas chinesas) ---';
+
 SELECT TOP 5
     codigo_empresa,
     [date],
@@ -222,21 +173,12 @@ FROM CSI500
 ORDER BY [date] DESC;
 GO
 
--- ========================================
--- PARTE 4: ANÁLISES RÁPIDAS
--- ========================================
 
 USE FinanceDB;
 GO
 
-PRINT '';
-PRINT '========================================';
-PRINT '4. ANÁLISES RÁPIDAS';
-PRINT '========================================';
-PRINT '';
 
--- Empresas por setor
-PRINT '--- EMPRESAS POR SETOR ---';
+
 SELECT
     Setor,
     COUNT(*) as TotalEmpresas
@@ -246,9 +188,7 @@ GROUP BY Setor
 ORDER BY TotalEmpresas DESC;
 GO
 
--- Empresas por estado
-PRINT '';
-PRINT '--- TOP 10 ESTADOS COM MAIS EMPRESAS ---';
+
 SELECT TOP 10
     l.Estado,
     COUNT(*) as TotalEmpresas
@@ -258,20 +198,15 @@ GROUP BY l.Estado
 ORDER BY TotalEmpresas DESC;
 GO
 
--- Período de dados disponíveis
-PRINT '';
-PRINT '--- PERÍODO DE DADOS DISPONÍVEIS ---';
 SELECT
     'S&P 500 Data' as Fonte,
     MIN(observation_date) as DataInicio,
     MAX(observation_date) as DataFim,
     COUNT(DISTINCT observation_date) as TotalDias,
     COUNT(DISTINCT symbol) as TotalEmpresas
-FROM datasets.dbo.SP500_data;
+FROM datasets.dbo.SP500;
 GO
 
-PRINT '';
-PRINT '--- PERÍODO CSI500 ---';
 SELECT
     'CSI 500' as Fonte,
     MIN([date]) as DataInicio,
@@ -279,24 +214,4 @@ SELECT
     COUNT(DISTINCT [date]) as TotalDias,
     COUNT(DISTINCT codigo_empresa) as TotalEmpresas
 FROM datasets.dbo.CSI500;
-GO
-
--- ========================================
--- FIM
--- ========================================
-
-PRINT '';
-PRINT '========================================';
-PRINT 'VISUALIZAÇÃO COMPLETA FINALIZADA!';
-PRINT '========================================';
-PRINT '';
-PRINT 'Resumo:';
-PRINT '  - Todas as tabelas foram consultadas';
-PRINT '  - Análises rápidas executadas';
-PRINT '';
-PRINT 'Para análises mais detalhadas:';
-PRINT '  - Execute os scripts_linux na pasta 2-analise';
-PRINT '  - Crie views personalizadas';
-PRINT '';
-PRINT '========================================';
 GO
