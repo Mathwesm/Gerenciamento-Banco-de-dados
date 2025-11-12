@@ -23,8 +23,6 @@ BEGIN
 END
 GO
 
-SELECT * from SP500Historico
-
 -- Tabela: Empresas
 IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'Empresas')
 BEGIN
