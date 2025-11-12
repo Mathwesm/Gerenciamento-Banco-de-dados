@@ -1,92 +1,10 @@
--- ========================================
--- SCRIPT: ANÁLISES CSI500 (Ações Chinesas)
--- ========================================
--- Descrição: Análises sobre o mercado chinês usando modelo dimensional
--- Database: FinanceDB
--- ========================================
-
 USE FinanceDB;
 GO
 
-PRINT '========================================';
-PRINT 'ANÁLISES CSI500 (MERCADO CHINÊS)';
-PRINT '========================================';
-PRINT '';
-GO
+CREATE PROCEDURE analise_csi500 AS
+BEGIN
 
--- ========================================
--- PERGUNTA 1: Ações com maior valorização
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 1: Maior Valorização CSI500';
-PRINT '========================================';
-PRINT '';
-GO
-
-WITH UltimaData AS (
-    SELECT MAX(DataCompleta) AS DataFinal
-    FROM Tempo
-),
-PrimeiraData AS (
-    SELECT MIN(DataCompleta) AS DataInicial
-    FROM Tempo
-    WHERE DataCompleta >= DATEADD(YEAR, -1, (SELECT DataFinal FROM UltimaData))
-),
-PrecoInicial AS (
-    SELECT
-        p.CodigoEmpresa,
-        e.NomeEmpresaEN,
-        e.Industria,
-        MIN(t.DataCompleta) AS DataInicio,
-        AVG(p.PrecoFechamento) AS PrecoInicial
-    FROM PrecoAcaoCSI500 p
-    INNER JOIN EmpresasCSI500 e ON p.CodigoEmpresa = e.CodigoEmpresa
-    INNER JOIN Tempo t ON p.IdTempo = t.IdTempo
-    CROSS JOIN PrimeiraData pd
-    WHERE t.DataCompleta BETWEEN pd.DataInicial AND DATEADD(DAY, 7, pd.DataInicial)
-      AND p.PrecoFechamento IS NOT NULL
-    GROUP BY p.CodigoEmpresa, e.NomeEmpresaEN, e.Industria
-),
-PrecoFinal AS (
-    SELECT
-        p.CodigoEmpresa,
-        MAX(t.DataCompleta) AS DataFim,
-        AVG(p.PrecoFechamento) AS PrecoFinal
-    FROM PrecoAcaoCSI500 p
-    INNER JOIN Tempo t ON p.IdTempo = t.IdTempo
-    CROSS JOIN UltimaData ud
-    WHERE t.DataCompleta >= DATEADD(DAY, -7, ud.DataFinal)
-      AND p.PrecoFechamento IS NOT NULL
-    GROUP BY p.CodigoEmpresa
-)
-SELECT TOP 20
-    pi.CodigoEmpresa,
-    pi.NomeEmpresaEN AS Empresa,
-    pi.Industria,
-    pi.DataInicio,
-    CAST(pi.PrecoInicial AS DECIMAL(10, 4)) AS PrecoInicial,
-    pf.DataFim,
-    CAST(pf.PrecoFinal AS DECIMAL(10, 4)) AS PrecoFinal,
-    CAST((pf.PrecoFinal - pi.PrecoInicial) AS DECIMAL(10, 4)) AS ValorizacaoAbsoluta,
-    CAST(((pf.PrecoFinal - pi.PrecoInicial) / NULLIF(pi.PrecoInicial, 0) * 100) AS DECIMAL(10, 2)) AS ValorizacaoPercentual
-FROM PrecoInicial pi
-INNER JOIN PrecoFinal pf ON pi.CodigoEmpresa = pf.CodigoEmpresa
-WHERE pi.PrecoInicial > 0
-ORDER BY ValorizacaoPercentual DESC;
-GO
-
-PRINT '';
-GO
-
--- ========================================
--- PERGUNTA 2: Volatilidade por Indústria
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 2: Volatilidade por Indústria';
-PRINT '========================================';
-PRINT '';
-GO
-
+-- PERGUNTA 1: Volatilidade por Indústria
 WITH RetornosDiarios AS (
     SELECT
         e.Industria,
@@ -123,20 +41,9 @@ WHERE RetornoDiario IS NOT NULL
 GROUP BY Industria
 HAVING COUNT(DISTINCT CodigoEmpresa) >= 3
 ORDER BY VolatilidadeAnualizada_Pct DESC;
-GO
 
-PRINT '';
-GO
 
--- ========================================
--- PERGUNTA 3: Maior volume de negociação
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 3: Maior Volume de Negociação';
-PRINT '========================================';
-PRINT '';
-GO
-
+-- PERGUNTA 2: Maior volume de negociação
 SELECT TOP 30
     e.CodigoEmpresa,
     e.NomeEmpresaEN AS Empresa,
@@ -152,20 +59,9 @@ WHERE p.Volume IS NOT NULL
   AND t.DataCompleta >= DATEADD(MONTH, -6, (SELECT MAX(DataCompleta) FROM Tempo))
 GROUP BY e.CodigoEmpresa, e.NomeEmpresaEN, e.Industria
 ORDER BY VolumeTotal DESC;
-GO
 
-PRINT '';
-GO
 
--- ========================================
--- PERGUNTA 4: Distribuição por Indústria
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 4: Distribuição por Indústria';
-PRINT '========================================';
-PRINT '';
-GO
-
+-- PERGUNTA 3: Distribuição por Indústria
 SELECT
     e.Industria,
     COUNT(*) AS QtdEmpresas,
@@ -176,20 +72,9 @@ FROM EmpresasCSI500 e
 WHERE e.Industria IS NOT NULL
 GROUP BY e.Industria
 ORDER BY QtdEmpresas DESC;
-GO
 
-PRINT '';
-GO
 
--- ========================================
--- PERGUNTA 5: Evolução do Índice CSI500
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 5: Evolução do Índice CSI500';
-PRINT '========================================';
-PRINT '';
-GO
-
+-- PERGUNTA 4: Evolução do Índice CSI500
 WITH IndiceMensal AS (
     SELECT
         YEAR(DataReferencia) AS Ano,
@@ -221,19 +106,8 @@ SELECT DISTINCT TOP 12
     CAST(((FechamentoMes - AberturaMes) / NULLIF(AberturaMes, 0) * 100) AS DECIMAL(10, 2)) AS RetornoMensal_Pct
 FROM IndiceMensal
 ORDER BY Ano DESC, Mes DESC;
-GO
 
-PRINT '';
-GO
-
--- ========================================
 -- RESUMO EXECUTIVO CSI500
--- ========================================
-PRINT '========================================';
-PRINT 'RESUMO EXECUTIVO CSI500';
-PRINT '========================================';
-GO
-
 SELECT
     'Total de Empresas CSI500' AS Metrica,
     CAST(COUNT(*) AS VARCHAR(20)) AS Valor
@@ -261,10 +135,4 @@ SELECT
     CAST(CAST(ValorMedioMercado AS DECIMAL(10,2)) AS VARCHAR(20))
 FROM CSI500Historico
 WHERE DataReferencia = (SELECT MAX(DataReferencia) FROM CSI500Historico);
-GO
-
-PRINT '';
-PRINT '========================================';
-PRINT 'ANÁLISES CSI500 CONCLUÍDAS!';
-PRINT '========================================';
-GO
+END

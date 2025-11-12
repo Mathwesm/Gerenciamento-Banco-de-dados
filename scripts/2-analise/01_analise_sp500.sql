@@ -1,6 +1,10 @@
 USE FinanceDB;
 GO
 
+CREATE PROCEDURE analise_sp500
+AS
+BEGIN
+
 -- PERGUNTA 1: Quais ações tiveram maior valorização no último período?
 WITH UltimaData AS (
     SELECT MAX(DataCompleta) AS DataFinal
@@ -53,7 +57,8 @@ FROM PrecoInicial pi
 INNER JOIN PrecoFinal pf ON pi.CIK = pf.CIK
 WHERE pi.PrecoInicial > 0
 ORDER BY ValorizacaoPercentual DESC;
-GO
+
+
 
 -- PERGUNTA 2: Qual é a volatilidade média por setor?
 WITH RetornosDiarios AS (
@@ -92,7 +97,7 @@ WHERE RetornoDiario IS NOT NULL
 GROUP BY Setor
 HAVING COUNT(DISTINCT Ticker) >= 3
 ORDER BY VolatilidadeAnualizada_Pct DESC;
-GO
+
 
 -- PERGUNTA 3: Empresas com maior volume de negociação
 SELECT TOP 30
@@ -110,7 +115,7 @@ WHERE p.Volume IS NOT NULL
   AND t.DataCompleta >= DATEADD(MONTH, -6, (SELECT MAX(DataCompleta) FROM Tempo))
 GROUP BY e.Ticker, e.NomeEmpresa, e.Setor
 ORDER BY VolumeTotal DESC;
-GO
+
 
 -- PERGUNTA 4: Evolução do Índice S&P 500
 WITH IndiceMensal AS (
@@ -142,7 +147,7 @@ SELECT DISTINCT
     CAST(((FechamentoMes - AberturaMes) / NULLIF(AberturaMes, 0) * 100) AS DECIMAL(10, 2)) AS RetornoMensal_Pct
 FROM IndiceMensal
 ORDER BY Ano DESC, Mes DESC;
-GO
+
 
 -- PERGUNTA 5: Distribuição de empresas por setor
 SELECT
@@ -154,8 +159,9 @@ SELECT
 FROM Empresas e
 WHERE e.Setor IS NOT NULL
 GROUP BY e.Setor
-ORDER BY QtdEmpresas DESC;
-GO
+ORDER BY QtdEmpresas DESC
+
+
 
 -- RESUMO EXECUTIVO
 SELECT
@@ -183,4 +189,6 @@ SELECT
     CAST(CAST(ValorFechamento AS DECIMAL(10,2)) AS VARCHAR(20))
 FROM SP500Historico
 WHERE DataReferencia = (SELECT MAX(DataReferencia) FROM SP500Historico);
-GO
+
+
+END;
