@@ -1,12 +1,6 @@
-IF NOT EXISTS (SELECT name
-FROM sys.databases
-WHERE name = 'datasets')
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'datasets')
 BEGIN
     CREATE DATABASE datasets;
-END
-ELSE
-BEGIN
-    PRINT 'Database datasets já existe.';
 END
 GO
 
@@ -46,7 +40,6 @@ BEGIN
         quarter INT,
         day_of_week NVARCHAR(20),
     );
-    PRINT 'Tabela SP500 criada.';
 END
 GO
 
@@ -73,13 +66,9 @@ BEGIN TRY
             FORMAT          = 'CSV'
         );
 
-    PRINT 'Importação concluída com sucesso!';
 END TRY
 BEGIN CATCH
-    PRINT 'Ocorreu um erro durante a importação!';
-    PRINT 'Mensagem de erro: ' + ERROR_MESSAGE();
-    PRINT 'Linha do erro: ' + CAST(ERROR_LINE() AS VARCHAR);
-    PRINT 'Procedimento: ' + ISNULL(ERROR_PROCEDURE(), 'N/A');
+    PRINT ERROR_MESSAGE();
 END CATCH;
 GO
 
@@ -103,11 +92,6 @@ BEGIN
         nome_empresa_en NVARCHAR(200),
         industry_en NVARCHAR(150)
     );
-    PRINT 'Tabela CSI500 criada.';
-END
-ELSE
-BEGIN
-    PRINT 'Tabela CSI500 já existe.';
 END
 GO
 
@@ -134,11 +118,7 @@ BEGIN TRY
             FORMAT          = 'CSV'
         );
 
-    PRINT 'Importação concluída com sucesso!';
 END TRY
 BEGIN CATCH
-    PRINT 'Ocorreu um erro durante a importação!';
-    PRINT 'Mensagem de erro: ' + ERROR_MESSAGE();
-    PRINT 'Linha do erro: ' + CAST(ERROR_LINE() AS VARCHAR);
-    PRINT 'Procedimento: ' + ISNULL(ERROR_PROCEDURE(), 'N/A');
+    PRINT ERROR_MESSAGE();
 END CATCH;
