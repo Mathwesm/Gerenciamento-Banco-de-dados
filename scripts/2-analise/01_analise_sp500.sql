@@ -1,28 +1,7 @@
--- ========================================
--- SCRIPT: ANÁLISES S&P 500
--- ========================================
--- Descrição: Análises sobre empresas e preços do S&P 500
--- Database: FinanceDB
--- ========================================
-
 USE FinanceDB;
 GO
 
-PRINT '========================================';
-PRINT 'ANÁLISES S&P 500';
-PRINT '========================================';
-PRINT '';
-GO
-
--- ========================================
 -- PERGUNTA 1: Quais ações tiveram maior valorização no último período?
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 1: Maior Valorização Recente';
-PRINT '========================================';
-PRINT '';
-GO
-
 WITH UltimaData AS (
     SELECT MAX(DataCompleta) AS DataFinal
     FROM Tempo
@@ -76,18 +55,7 @@ WHERE pi.PrecoInicial > 0
 ORDER BY ValorizacaoPercentual DESC;
 GO
 
-PRINT '';
-GO
-
--- ========================================
 -- PERGUNTA 2: Qual é a volatilidade média por setor?
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 2: Volatilidade por Setor';
-PRINT '========================================';
-PRINT '';
-GO
-
 WITH RetornosDiarios AS (
     SELECT
         e.Setor,
@@ -126,18 +94,7 @@ HAVING COUNT(DISTINCT Ticker) >= 3
 ORDER BY VolatilidadeAnualizada_Pct DESC;
 GO
 
-PRINT '';
-GO
-
--- ========================================
 -- PERGUNTA 3: Empresas com maior volume de negociação
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 3: Maior Volume de Negociação';
-PRINT '========================================';
-PRINT '';
-GO
-
 SELECT TOP 30
     e.Ticker,
     e.NomeEmpresa,
@@ -155,18 +112,7 @@ GROUP BY e.Ticker, e.NomeEmpresa, e.Setor
 ORDER BY VolumeTotal DESC;
 GO
 
-PRINT '';
-GO
-
--- ========================================
 -- PERGUNTA 4: Evolução do Índice S&P 500
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 4: Evolução do Índice S&P 500';
-PRINT '========================================';
-PRINT '';
-GO
-
 WITH IndiceMensal AS (
     SELECT
         YEAR(DataReferencia) AS Ano,
@@ -198,18 +144,7 @@ FROM IndiceMensal
 ORDER BY Ano DESC, Mes DESC;
 GO
 
-PRINT '';
-GO
-
--- ========================================
 -- PERGUNTA 5: Distribuição de empresas por setor
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 5: Empresas por Setor';
-PRINT '========================================';
-PRINT '';
-GO
-
 SELECT
     e.Setor,
     COUNT(*) AS QtdEmpresas,
@@ -222,17 +157,7 @@ GROUP BY e.Setor
 ORDER BY QtdEmpresas DESC;
 GO
 
-PRINT '';
-GO
-
--- ========================================
 -- RESUMO EXECUTIVO
--- ========================================
-PRINT '========================================';
-PRINT 'RESUMO EXECUTIVO';
-PRINT '========================================';
-GO
-
 SELECT
     'Total de Empresas' AS Metrica,
     CAST(COUNT(*) AS VARCHAR(20)) AS Valor
@@ -258,10 +183,4 @@ SELECT
     CAST(CAST(ValorFechamento AS DECIMAL(10,2)) AS VARCHAR(20))
 FROM SP500Historico
 WHERE DataReferencia = (SELECT MAX(DataReferencia) FROM SP500Historico);
-GO
-
-PRINT '';
-PRINT '========================================';
-PRINT 'ANÁLISES CONCLUÍDAS!';
-PRINT '========================================';
 GO
