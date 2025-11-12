@@ -13,14 +13,13 @@ O objetivo é avaliar as situações do mercado financeiro americano e chines em
 
 ## Índice
 
-- [Visão Geral](#-visão-geral)
-
-- [Estrutura dos Datasets](#-estrutura-dos-datasets)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Análises Disponíveis](#-análises-disponíveis)
-- [Principais Perguntas a serem respondidas](#-principais-perguntas-a-serem-respondidas)
-- [Setup Ambiente](#-setup-ambiente)
-- [Uso](#-uso)
+- [Visão Geral](##-visão-geral)
+- [Estrutura dos Datasets](##-estrutura-dos-datasets)
+- [Estrutura do Projeto](##-estrutura-do-projeto)
+- [Análises Disponíveis](##-análises-disponíveis)
+- [Principais Perguntas a serem respondidas](##-principais-perguntas-a-serem-respondidas)
+- [Setup Ambiente](##-setup-ambiente)
+- [Uso](##-uso)
 
 ---
 
@@ -91,19 +90,19 @@ O projeto faz uso de um dataset financeiro real, que abrange dados sobre:
 - Evolução do Índice S&P 500
 - Setores com melhor desempenho médio no S&P 500
 - Retorno médio de dividendos por setor e empresa S&P 500
-- 
+  
 
 ## Setup Ambiente
 
 ### Configurando o ambiente
 
-# Clone o repositório
+### Clone o repositório
 git clone https://github.com/Mathwesm/Gerenciamento-Banco-de-dados.git
 
-# Acesse o diretório do projeto
+### Acesse o diretório do projeto
 cd Gerenciamento-Banco-de-dados
 
-# Suba os containers
+### Suba os containers
 docker compose up -d
 
 ---
