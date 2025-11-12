@@ -1,28 +1,7 @@
--- ========================================
--- SCRIPT: PERGUNTAS ADICIONAIS DE ANÁLISE
--- ========================================
--- Descrição: Queries para responder perguntas 4-10
--- Database: FinanceDB
--- ========================================
-
 USE FinanceDB;
 GO
 
-PRINT '========================================';
-PRINT 'PERGUNTAS ADICIONAIS DE ANÁLISE';
-PRINT '========================================';
-PRINT '';
-GO
-
--- ========================================
--- PERGUNTA 4: Ações com crescimento consistente nos últimos 5 anos
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 4: Crescimento Consistente (5 anos)';
-PRINT '========================================';
-PRINT '';
-GO
-
+-- PERGUNTA 1: Ações com crescimento consistente nos últimos 5 anos
 WITH PrecosPorAno AS (
     SELECT
         e.CIK,
@@ -87,22 +66,11 @@ SELECT TOP 30
         ELSE 'Volátil'
     END AS Classificacao
 FROM AnosPositivos
-WHERE TotalAnos >= 4  -- Pelo menos 4 anos de dados
+WHERE TotalAnos >= 4
 ORDER BY TaxaConsistencia DESC, CrescimentoMedioAnual DESC;
 GO
 
-PRINT '';
-GO
-
--- ========================================
--- PERGUNTA 5: Setores com melhor desempenho médio no S&P 500
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 5: Desempenho Setores no S&P 500';
-PRINT '========================================';
-PRINT '';
-GO
-
+-- PERGUNTA 2: Setores com melhor desempenho médio no S&P 500
 WITH DesempenhoSetorial AS (
     SELECT
         e.Setor,
@@ -143,18 +111,7 @@ WHERE d.Setor IS NOT NULL
 ORDER BY d.VariacaoMediaDiaria DESC;
 GO
 
-PRINT '';
-GO
-
--- ========================================
--- PERGUNTA 6: Ações com maior queda na crise COVID (Mar-Abr 2020)
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 6: Quedas na Crise COVID-19';
-PRINT '========================================';
-PRINT '';
-GO
-
+-- PERGUNTA 3: Ações com maior queda na crise COVID (Mar-Abr 2020)
 WITH PreCovid AS (
     SELECT
         e.CIK,
@@ -216,20 +173,7 @@ WHERE pc.PrecoPreCovid > 0
 ORDER BY QuedaCovid_Pct ASC;
 GO
 
-PRINT '';
-GO
-
--- ========================================
--- PERGUNTA 7: Retorno médio de dividendos por setor e empresa
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 7: Dividendos por Setor e Empresa';
-PRINT '========================================';
-PRINT '';
-GO
-
--- Por Setor
-PRINT 'DIVIDENDOS POR SETOR:';
+-- PERGUNTA 4: Retorno médio de dividendos por setor e empresa
 SELECT
     e.Setor,
     COUNT(DISTINCT e.CIK) AS QtdEmpresas,
@@ -251,8 +195,6 @@ GROUP BY e.Setor
 ORDER BY DividendoMedio_Pct DESC;
 GO
 
-PRINT '';
-PRINT 'TOP 30 EMPRESAS COM MAIORES DIVIDENDOS:';
 SELECT TOP 30
     e.Ticker,
     e.NomeEmpresa,
@@ -272,24 +214,13 @@ HAVING COUNT(d.IdDividendo) > 100  -- Pelo menos 100 pagamentos
 ORDER BY DividendoMedio_Pct DESC;
 GO
 
-PRINT '';
-GO
-
--- ========================================
--- PERGUNTA 8: Relação entre Market Cap e Performance
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 8: Market Cap vs Performance';
-PRINT '========================================';
-PRINT '';
-GO
-
+-- PERGUNTA 5: Relação entre Market Cap e Performance
 WITH MarketCapAtual AS (
     SELECT
         sp.cik,
         AVG(TRY_CAST(sp.market_cap AS DECIMAL(20, 2))) AS MarketCapMedia
-    FROM datasets.dbo.SP500_data sp
-    WHERE sp.observation_date >= DATEADD(MONTH, -3, (SELECT MAX(observation_date) FROM datasets.dbo.SP500_data))
+    FROM datasets.dbo.SP500 sp
+    WHERE sp.observation_date >= DATEADD(MONTH, -3, (SELECT MAX(observation_date) FROM datasets.dbo.SP500))
       AND sp.market_cap IS NOT NULL
     GROUP BY sp.cik
 ),
@@ -329,18 +260,7 @@ WHERE m.MarketCapMedia > 0
 ORDER BY m.MarketCapMedia DESC;
 GO
 
-PRINT '';
-GO
-
--- ========================================
--- PERGUNTA 9: Empresas antigas (fundadas antes de 1950) com boa performance
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 9: Empresas Antigas com Boa Performance';
-PRINT '========================================';
-PRINT '';
-GO
-
+-- PERGUNTA 6: Empresas antigas (fundadas antes de 1950) com boa performance
 WITH PerformanceRecente AS (
     SELECT
         p.CIK,
@@ -380,20 +300,7 @@ WHERE e.AnoFundacao IS NOT NULL
 ORDER BY e.AnoFundacao ASC, pr.VariacaoMedia DESC;
 GO
 
-PRINT '';
-GO
-
--- ========================================
--- PERGUNTA 10: Distribuição geográfica por setor (foco em Tech)
--- ========================================
-PRINT '========================================';
-PRINT 'PERGUNTA 10: Distribuição Geográfica por Setor';
-PRINT '========================================';
-PRINT '';
-GO
-
--- Distribuição geral
-PRINT 'DISTRIBUIÇÃO POR ESTADO:';
+-- PERGUNTA 7: Distribuição geográfica por setor (foco em Tech)
 SELECT
     LTRIM(RTRIM(REPLACE(REPLACE(l.Estado, '"', ''), '''', ''))) AS Estado,
     COUNT(*) AS TotalEmpresas,
@@ -410,8 +317,6 @@ HAVING COUNT(*) >= 3  -- Pelo menos 3 empresas
 ORDER BY TotalEmpresas DESC, PctTech DESC;
 GO
 
-PRINT '';
-PRINT 'COMPARAÇÃO TECH vs OUTROS SETORES:';
 SELECT
     CASE WHEN e.Setor = 'Information Technology' THEN 'Technology' ELSE 'Outros Setores' END AS Categoria,
     COUNT(DISTINCT l.Estado) AS EstadosPresentes,
@@ -424,8 +329,6 @@ WHERE l.Estado IS NOT NULL
 GROUP BY CASE WHEN e.Setor = 'Information Technology' THEN 'Technology' ELSE 'Outros Setores' END;
 GO
 
-PRINT '';
-PRINT 'TOP 10 CIDADES COM MAIS EMPRESAS:';
 SELECT TOP 10
     LTRIM(RTRIM(REPLACE(REPLACE(l.Cidade, '"', ''), '''', ''))) AS Cidade,
     LTRIM(RTRIM(REPLACE(REPLACE(l.Estado, '"', ''), '''', ''))) AS Estado,
@@ -437,10 +340,3 @@ INNER JOIN Empresas e ON l.CIK = e.CIK
 WHERE l.Cidade IS NOT NULL
 GROUP BY LTRIM(RTRIM(REPLACE(REPLACE(l.Cidade, '"', ''), '''', ''))), LTRIM(RTRIM(REPLACE(REPLACE(l.Estado, '"', ''), '''', '')))
 ORDER BY TotalEmpresas DESC;
-GO
-
-PRINT '';
-PRINT '========================================';
-PRINT 'TODAS AS PERGUNTAS RESPONDIDAS!';
-PRINT '========================================';
-GO

@@ -1,22 +1,7 @@
--- ========================================
--- SCRIPT: CRIAR VIEWS DE ANÁLISE
--- ========================================
--- Descrição: Cria views para facilitar análises
--- Database: FinanceDB
--- ========================================
-
 USE FinanceDB;
 GO
 
-PRINT '========================================';
-PRINT 'CRIANDO VIEWS DE ANÁLISE';
-PRINT '========================================';
-PRINT '';
-GO
-
--- ========================================
 -- VIEW 1: Valorização por Ação (Últimos 6 meses)
--- ========================================
 IF OBJECT_ID('vw_ValorizacaoAcoes', 'V') IS NOT NULL DROP VIEW vw_ValorizacaoAcoes;
 GO
 
@@ -81,12 +66,7 @@ INNER JOIN PrecoFinal pf ON pi.CIK = pf.CIK
 WHERE pi.PrecoInicial > 0;
 GO
 
-PRINT 'VIEW vw_ValorizacaoAcoes criada.';
-GO
-
--- ========================================
 -- VIEW 2: Volatilidade por Setor
--- ========================================
 IF OBJECT_ID('vw_VolatilidadeSetor', 'V') IS NOT NULL DROP VIEW vw_VolatilidadeSetor;
 GO
 
@@ -132,12 +112,7 @@ WHERE RetornoDiario IS NOT NULL
 GROUP BY Setor;
 GO
 
-PRINT 'VIEW vw_VolatilidadeSetor criada.';
-GO
-
--- ========================================
 -- VIEW 3: Volume de Negociação por Empresa
--- ========================================
 IF OBJECT_ID('vw_VolumeNegociacao', 'V') IS NOT NULL DROP VIEW vw_VolumeNegociacao;
 GO
 
@@ -161,12 +136,7 @@ WHERE p.Volume IS NOT NULL
 GROUP BY e.CIK, e.Ticker, e.NomeEmpresa, e.Setor;
 GO
 
-PRINT 'VIEW vw_VolumeNegociacao criada.';
-GO
-
--- ========================================
 -- VIEW 4: Evolução Mensal do S&P 500
--- ========================================
 IF OBJECT_ID('vw_EvolucaoSP500Mensal', 'V') IS NOT NULL DROP VIEW vw_EvolucaoSP500Mensal;
 GO
 
@@ -202,12 +172,7 @@ SELECT DISTINCT
 FROM IndiceMensal;
 GO
 
-PRINT 'VIEW vw_EvolucaoSP500Mensal criada.';
-GO
-
--- ========================================
 -- VIEW 5: Distribuição de Empresas por Setor
--- ========================================
 IF OBJECT_ID('vw_EmpresasPorSetor', 'V') IS NOT NULL DROP VIEW vw_EmpresasPorSetor;
 GO
 
@@ -225,12 +190,7 @@ WHERE e.Setor IS NOT NULL
 GROUP BY e.Setor;
 GO
 
-PRINT 'VIEW vw_EmpresasPorSetor criada.';
-GO
-
--- ========================================
 -- VIEW 6: Resumo de Desempenho por Empresa
--- ========================================
 IF OBJECT_ID('vw_ResumoDesempenhoEmpresas', 'V') IS NOT NULL DROP VIEW vw_ResumoDesempenhoEmpresas;
 GO
 
@@ -275,27 +235,11 @@ LEFT JOIN Localizacao l ON e.CIK = l.CIK
 LEFT JOIN SubSetor s ON e.CIK = s.CIK;
 GO
 
-PRINT 'VIEW vw_ResumoDesempenhoEmpresas criada.';
-GO
-
--- ========================================
 -- VERIFICAÇÃO E TESTES DAS VIEWS
--- ========================================
-PRINT '';
-PRINT '========================================';
-PRINT 'VERIFICAÇÃO DAS VIEWS CRIADAS';
-PRINT '========================================';
-GO
-
 SELECT TABLE_NAME AS ViewCriada
 FROM INFORMATION_SCHEMA.VIEWS
 WHERE TABLE_SCHEMA = 'dbo'
 ORDER BY TABLE_NAME;
-GO
-
-PRINT '';
-PRINT 'Testando views...';
-PRINT '';
 GO
 
 -- Teste VIEW 1
@@ -344,21 +288,3 @@ PRINT '6. Resumo de Empresas (Amostra):';
 SELECT TOP 5 Ticker, NomeEmpresa, Setor, PrecoMedio, VolumeMediaDiaria
 FROM vw_ResumoDesempenhoEmpresas
 ORDER BY Ticker;
-GO
-
-PRINT '';
-PRINT '========================================';
-PRINT 'VIEWS DE ANÁLISE CRIADAS COM SUCESSO!';
-PRINT '========================================';
-PRINT '';
-PRINT 'Views disponíveis:';
-PRINT '  1. vw_ValorizacaoAcoes - Valorização de ações';
-PRINT '  2. vw_VolatilidadeSetor - Volatilidade por setor';
-PRINT '  3. vw_VolumeNegociacao - Volume de negociação';
-PRINT '  4. vw_EvolucaoSP500Mensal - Evolução do índice';
-PRINT '  5. vw_EmpresasPorSetor - Distribuição por setor';
-PRINT '  6. vw_ResumoDesempenhoEmpresas - Resumo completo';
-PRINT '';
-PRINT 'Use: SELECT * FROM vw_[NomeDaView]';
-PRINT '========================================';
-GO
