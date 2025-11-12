@@ -1,13 +1,8 @@
--- ========================================
--- PARTE 1: CRIAR DATABASE DATASETS
--- ========================================
-
 IF NOT EXISTS (SELECT name
 FROM sys.databases
 WHERE name = 'datasets')
 BEGIN
     CREATE DATABASE datasets;
-    PRINT 'Database datasets criado com sucesso!';
 END
 ELSE
 BEGIN
@@ -15,14 +10,9 @@ BEGIN
 END
 GO
 
--- ========================================
--- PARTE 2: CRIAR TABELAS NO DATABASE DATASETS
--- ========================================
 USE datasets;
 GO
 
-PRINT 'Criando tabelas no database datasets...';
-go
 
 IF NOT EXISTS (SELECT 1
 FROM sys.tables
@@ -55,7 +45,6 @@ BEGIN
         month INT,
         quarter INT,
         day_of_week NVARCHAR(20),
-        timestamp DATETIME
     );
     PRINT 'Tabela SP500 criada.';
 END
@@ -101,7 +90,7 @@ WHERE name = 'CSI500' AND schema_id = SCHEMA_ID('dbo'))
 BEGIN
     CREATE TABLE CSI500
     (
-        codigo_empresa INT PRIMARY KEY,
+        codigo_empresa INT,
         date DATE,
         [open] DECIMAL(12,2),
         high DECIMAL(12,2),
@@ -109,12 +98,10 @@ BEGIN
         [close] DECIMAL(12,2),
         volume DECIMAL(16,2),
         amount DECIMAL(20,2),
-        outstanding_share NVARCHAR(50),
-        turnover NVARCHAR(50),
+        outstanding_share NVARCHAR(30),
+        turnover NVARCHAR(30),
         nome_empresa_en NVARCHAR(200),
-        region_en NVARCHAR(100),
-        industry_en NVARCHAR(150),
-        subindustry_en NVARCHAR(150)
+        industry_en NVARCHAR(150)
     );
     PRINT 'Tabela CSI500 criada.';
 END
