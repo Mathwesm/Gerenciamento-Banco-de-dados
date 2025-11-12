@@ -1,9 +1,7 @@
 USE FinanceDB;
 GO
 
-
--- Inserir datas únicas do SP500
-INSERT INTO Tempo (DataCompleta, Ano, Mes, Dia, Trimestre, Semestre, DiaSemana, NomeDiaSemana, NomeMes, EhFimDeSemana, EhFeriado)
+INSERT INTO Tempo (DataCompleta, Ano, Mes, Dia, Trimestre, Semestre, DiaSemana, NomeDiaSemana, NomeMes)
 SELECT DISTINCT
     observation_date,
     YEAR(observation_date),
@@ -13,26 +11,13 @@ SELECT DISTINCT
     CASE WHEN MONTH(observation_date) <= 6 THEN 1 ELSE 2 END,
     DATEPART(WEEKDAY, observation_date),
     DATENAME(WEEKDAY, observation_date),
-    DATENAME(MONTH, observation_date),
-    CASE WHEN DATEPART(WEEKDAY, observation_date) IN (1, 7) THEN 1 ELSE 0 END,
-    0
+    DATENAME(MONTH, observation_date)
 FROM datasets.dbo.SP500
 WHERE observation_date IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM Tempo WHERE DataCompleta = observation_date);
-
-PRINT 'Dimensão Tempo populada com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
 GO
 
--- ========================================
--- PARTE 2: POPULAR DIMENSÃO EMPRESAS
--- ========================================
-
-PRINT 'Populando dimensão Empresas...';
-GO
-
--- Inserir/atualizar empresas únicas do SP500 usando MERGE
--- Para CIKs duplicados (ex: Class A e Class B), pega o primeiro alfabeticamente
-;WITH RankedCompanies AS (
+WITH RankedCompanies AS (
     SELECT DISTINCT
         cik,
         company_name,
@@ -65,23 +50,14 @@ WHEN MATCHED THEN
         DataEntrada = source.date_added_sp500,
         AnoFundacao = source.founded_year
 WHEN NOT MATCHED THEN
-    INSERT (CIK, NomeEmpresa, Ticker, Setor, DataEntrada, AnoFundacao, TipoSeguranca, Site)
+    INSERT (CIK, NomeEmpresa, Ticker, Setor, DataEntrada, AnoFundacao)
     VALUES (source.cik, source.company_name, source.symbol, source.sector,
-            source.date_added_sp500, source.founded_year, NULL, NULL);
+            source.date_added_sp500, source.founded_year);
 
-PRINT 'Dimensão Empresas populada/atualizada com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
 GO
 
--- ========================================
--- PARTE 3: POPULAR DIMENSÃO SUBSETOR
--- ========================================
 
-PRINT 'Populando dimensão SubSetor...';
-GO
-
--- Usar MERGE para evitar duplicatas
--- Para CIKs duplicados, pega o primeiro alfabeticamente por símbolo
-;WITH RankedSubSectors AS (
+WITH RankedSubSectors AS (
     SELECT DISTINCT
         cik,
         sector,
@@ -109,19 +85,10 @@ WHEN NOT MATCHED THEN
     INSERT (CIK, Industria, SubIndustria, Categoria)
     VALUES (source.cik, source.sector, source.sub_industry, source.sector);
 
-PRINT 'Dimensão SubSetor populada/atualizada com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
 GO
 
--- ========================================
--- PARTE 4: POPULAR DIMENSÃO LOCALIZAÇÃO
--- ========================================
 
-PRINT 'Populando dimensão Localizacao...';
-GO
-
--- Usar MERGE para evitar duplicatas
--- Para CIKs duplicados, pega o primeiro alfabeticamente por símbolo
-;WITH RankedLocations AS (
+WITH RankedLocations AS (
     SELECT DISTINCT
         cik,
         CASE
@@ -169,17 +136,7 @@ WHEN NOT MATCHED THEN
     INSERT (CIK, Cidade, Estado, Pais, Regiao, CodigoPostal)
     VALUES (source.cik, source.cidade, source.estado, 'Estados Unidos', source.regiao, NULL);
 
-PRINT 'Dimensão Localizacao populada/atualizada com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
 GO
-
--- ========================================
--- PARTE 5: POPULAR FATO PREÇO AÇÃO
--- ========================================
-
-PRINT 'Populando fato PrecoAcao (pode demorar alguns minutos)...';
-GO
-
--- Inserir preços das ações
 INSERT INTO PrecoAcao (
     CIK,
     IdTempo,
@@ -209,18 +166,8 @@ WHERE sp.cik IS NOT NULL
   AND sp.observation_date IS NOT NULL
   AND EXISTS (SELECT 1 FROM Empresas WHERE CIK = sp.cik);
 
-PRINT 'Fato PrecoAcao populado com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
 GO
 
--- ========================================
--- PARTE 6: POPULAR TABELA DIVIDENDOS
--- ========================================
-
-PRINT 'Populando tabela Dividendos...';
-GO
-
--- Inserir dividendos das empresas
--- O dividend_yield representa o rendimento de dividendos em percentual
 INSERT INTO Dividendos (
     CIK,
     IdTempo,
@@ -246,18 +193,9 @@ WHERE sp.cik IS NOT NULL
   AND sp.dividend_yield > 0
   AND EXISTS (SELECT 1 FROM Empresas WHERE CIK = sp.cik);
 
-PRINT 'Tabela Dividendos populada com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
 GO
 
--- ========================================
--- PARTE 6.5: CALCULAR VARIAÇÃO DIÁRIA
--- ========================================
-
-PRINT 'Calculando VariacaoDiaria para PrecoAcao...';
-GO
-
--- Atualizar VariacaoDiaria (PreçoHoje - PreçoOntem)
-;WITH PrecoComAnterior AS (
+WITH PrecoComAnterior AS (
     SELECT
         IdPrecoAcao,
         CIK,
@@ -272,23 +210,12 @@ FROM PrecoAcao p
 INNER JOIN PrecoComAnterior pca ON p.IdPrecoAcao = pca.IdPrecoAcao
 WHERE pca.PrecoAnterior IS NOT NULL;
 
-PRINT 'VariacaoDiaria calculada para ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
 GO
 
--- ========================================
--- PARTE 7: POPULAR HISTÓRICO S&P 500
--- ========================================
 
-PRINT 'Populando SP500Historico...';
-GO
-
--- Inserir valores históricos do índice S&P 500
--- Como nem todos os registros têm sp500_index, calculamos com base no close_price
--- Usamos a média dos preços de fechamento como aproximação do índice
 INSERT INTO SP500Historico (DataReferencia, ValorFechamento, ValorAbertura, ValorMaximo, ValorMinimo, VolumeNegociado)
 SELECT
     sp.observation_date,
-    -- Se houver sp500_index, usar; senão usar AVG(close_price) como aproximação
     ISNULL(
         (SELECT AVG(TRY_CAST(sp2.sp500_index AS DECIMAL(18,2)))
          FROM datasets.dbo.SP500 sp2
@@ -322,24 +249,6 @@ WHERE sp.observation_date IS NOT NULL
   )
 GROUP BY sp.observation_date;
 
-PRINT 'SP500Historico populado com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
-GO
-
--- ========================================
--- PARTE 8: PROCESSAR CSI500 (MERCADO CHINÊS)
--- ========================================
-
-PRINT '';
-PRINT '========================================';
-PRINT 'PROCESSANDO CSI500 (MERCADO CHINÊS)';
-PRINT '========================================';
-GO
-
--- ========================================
--- PARTE 8.1: POPULAR DIMENSÃO TEMPO COM DATAS CSI500
--- ========================================
-
-PRINT 'Adicionando datas do CSI500 à dimensão Tempo...';
 GO
 
 INSERT INTO Tempo (DataCompleta, Ano, Mes, Dia, Trimestre, Semestre, DiaSemana, NomeDiaSemana, NomeMes, EhFimDeSemana, EhFeriado)
@@ -358,24 +267,16 @@ SELECT DISTINCT
 FROM datasets.dbo.CSI500
 WHERE [date] IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM Tempo WHERE DataCompleta = [date]);
-
-PRINT 'Datas CSI500 adicionadas: ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
 GO
 
--- ========================================
--- PARTE 8.2: POPULAR DIMENSÃO EMPRESASCSI500
--- ========================================
-
-PRINT 'Populando dimensão EmpresasCSI500...';
-GO
 --TODO tem duas colunas que não tem dados
-;WITH RankedCompanies AS (
+WITH RankedCompanies AS (
     SELECT DISTINCT
         c.codigo_empresa,
         c.nome_empresa_en,
         c.industry_en,
-        -- c.subindustry_en,
-        -- c.region_en,
+        -- c.subindustry_en, -- Coluna comentada (não há dados)
+        -- c.region_en, -- Coluna comentada (não há dados)
         c.[date],
         ROW_NUMBER() OVER (PARTITION BY c.codigo_empresa ORDER BY c.[date]) as rn
     FROM datasets.dbo.CSI500 c
@@ -386,8 +287,8 @@ FirstDatePerCompany AS (
         codigo_empresa,
         nome_empresa_en,
         industry_en,
-        -- subindustry_en,
-        -- region_en,
+        -- subindustry_en, -- Coluna comentada (não há dados)
+        -- region_en, -- Coluna comentada (não há dados)
         MIN([date]) OVER (PARTITION BY codigo_empresa) AS DataPrimeiraObservacao
     FROM RankedCompanies
     WHERE rn = 1
@@ -397,18 +298,15 @@ USING FirstDatePerCompany AS source
 ON target.CodigoEmpresa = source.codigo_empresa
 WHEN NOT MATCHED THEN
     INSERT (CodigoEmpresa, NomeEmpresa, NomeEmpresaEN, Industria, SubIndustria, Regiao, DataPrimeiraObservacao)
-    VALUES (source.codigo_empresa, NULL, source.nome_empresa_en, source.industry_en, 
-    --source.subindustry_en, source.region_en,
-     source.DataPrimeiraObservacao);
-
-PRINT 'Dimensão EmpresasCSI500 populada/atualizada com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
-GO
-
--- ========================================
--- PARTE 8.3: POPULAR FATO PREÇOACAOCSI500
--- ========================================
-
-PRINT 'Populando fato PrecoAcaoCSI500 (pode demorar alguns minutos)...';
+    VALUES (
+        source.codigo_empresa, 
+        NULL, -- NomeEmpresa (não fornecido, então insira como NULL ou outro valor adequado)
+        source.nome_empresa_en, 
+        source.industry_en, 
+        NULL, -- SubIndustria (não fornecido, então insira como NULL ou outro valor adequado)
+        NULL, -- Regiao (não fornecido, então insira como NULL ou outro valor adequado)
+        source.DataPrimeiraObservacao
+    );
 GO
 
 INSERT INTO PrecoAcaoCSI500 (
@@ -439,15 +337,6 @@ INNER JOIN Tempo t ON t.DataCompleta = c.[date]
 WHERE c.codigo_empresa IS NOT NULL
   AND c.[date] IS NOT NULL
   AND EXISTS (SELECT 1 FROM EmpresasCSI500 WHERE CodigoEmpresa = c.codigo_empresa);
-
-PRINT 'Fato PrecoAcaoCSI500 populado com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
-GO
-
--- ========================================
--- PARTE 8.4: POPULAR CSI500HISTORICO
--- ========================================
-
-PRINT 'Populando CSI500Historico (agregação do mercado)...';
 GO
 
 INSERT INTO CSI500Historico (DataReferencia, ValorMedioMercado, VolumeTotal, QtdEmpresasNegociadas)
@@ -461,43 +350,3 @@ WHERE c.[date] IS NOT NULL
   AND TRY_CAST(c.[close] AS DECIMAL(18,4)) IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM CSI500Historico WHERE DataReferencia = c.[date])
 GROUP BY c.[date];
-
-PRINT 'CSI500Historico populado com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
-GO
-
--- ========================================
--- VERIFICAÇÃO FINAL
--- ========================================
-
-PRINT '';
-PRINT '========================================';
-PRINT 'ETL CONCLUÍDO COM SUCESSO!';
-PRINT '========================================';
-GO
-
-PRINT 'Contagem de registros no modelo dimensional:';
-PRINT '';
-PRINT '--- S&P 500 ---';
-SELECT 'Tempo' as Tabela, COUNT(*) as Total FROM Tempo
-UNION ALL SELECT 'Empresas', COUNT(*) FROM Empresas
-UNION ALL SELECT 'SubSetor', COUNT(*) FROM SubSetor
-UNION ALL SELECT 'Localizacao', COUNT(*) FROM Localizacao
-UNION ALL SELECT 'PrecoAcao', COUNT(*) FROM PrecoAcao
-UNION ALL SELECT 'Dividendos', COUNT(*) FROM Dividendos
-UNION ALL SELECT 'SP500Historico', COUNT(*) FROM SP500Historico;
-GO
-
-PRINT '';
-PRINT '--- CSI500 (Mercado Chinês) ---';
-SELECT 'EmpresasCSI500' as Tabela, COUNT(*) as Total FROM EmpresasCSI500
-UNION ALL SELECT 'PrecoAcaoCSI500', COUNT(*) FROM PrecoAcaoCSI500
-UNION ALL SELECT 'CSI500Historico', COUNT(*) FROM CSI500Historico;
-GO
-
-PRINT '';
-PRINT 'Próximos passos:';
-PRINT '  1. Execute scripts_linux de análise (pasta 2-analise)';
-PRINT '  2. Crie views para responder às perguntas';
-PRINT '  3. Configure o DataGrip com ambos databases (FinanceDB + datasets)';
-PRINT '========================================';
-GO
