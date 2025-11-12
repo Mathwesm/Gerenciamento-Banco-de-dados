@@ -1,29 +1,8 @@
--- ========================================
--- SCRIPT 02: PROCESSAR DADOS (ETL)
--- ========================================
--- Descrição: Processa dados brutos e popula o modelo dimensional
--- Lê dados de: datasets.dbo.SP500_data e datasets.CSI500
--- Popula: FinanceDB.Empresas, FinanceDB.Tempo, FinanceDB.PrecoAcao, etc.
--- ========================================
--- IMPORTANTE: Execute APÓS o script 01_setup_completo.sql
--- Comando: docker exec sqlserverCC /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P "Cc202505!" -i /tmp/02_processar_dados_etl.sql -C
--- ========================================
-
-PRINT '========================================';
-PRINT 'INICIANDO PROCESSAMENTO ETL';
-PRINT '========================================';
-GO
-
--- ========================================
--- PARTE 1: POPULAR DIMENSÃO TEMPO
--- ========================================
 USE FinanceDB;
 GO
 
-PRINT 'Populando dimensão Tempo...';
-GO
 
--- Inserir datas únicas do SP500_data
+-- Inserir datas únicas do SP500
 INSERT INTO Tempo (DataCompleta, Ano, Mes, Dia, Trimestre, Semestre, DiaSemana, NomeDiaSemana, NomeMes, EhFimDeSemana, EhFeriado)
 SELECT DISTINCT
     observation_date,
@@ -37,7 +16,7 @@ SELECT DISTINCT
     DATENAME(MONTH, observation_date),
     CASE WHEN DATEPART(WEEKDAY, observation_date) IN (1, 7) THEN 1 ELSE 0 END,
     0
-FROM datasets.dbo.SP500_data
+FROM datasets.dbo.SP500
 WHERE observation_date IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM Tempo WHERE DataCompleta = observation_date);
 
@@ -51,7 +30,7 @@ GO
 PRINT 'Populando dimensão Empresas...';
 GO
 
--- Inserir/atualizar empresas únicas do SP500_data usando MERGE
+-- Inserir/atualizar empresas únicas do SP500 usando MERGE
 -- Para CIKs duplicados (ex: Class A e Class B), pega o primeiro alfabeticamente
 ;WITH RankedCompanies AS (
     SELECT DISTINCT
@@ -62,7 +41,7 @@ GO
         date_added_sp500,
         TRY_CAST(founded_year AS SMALLINT) AS founded_year,
         ROW_NUMBER() OVER (PARTITION BY cik ORDER BY symbol) as rn
-    FROM datasets.dbo.SP500_data
+    FROM datasets.dbo.SP500
     WHERE cik IS NOT NULL
 )
 MERGE Empresas AS target
@@ -108,7 +87,7 @@ GO
         sector,
         sub_industry,
         ROW_NUMBER() OVER (PARTITION BY cik ORDER BY symbol) as rn
-    FROM datasets.dbo.SP500_data
+    FROM datasets.dbo.SP500
     WHERE cik IS NOT NULL
 )
 MERGE SubSetor AS target
@@ -156,7 +135,7 @@ GO
             ELSE NULL
         END AS estado,
         ROW_NUMBER() OVER (PARTITION BY cik ORDER BY symbol) as rn
-    FROM datasets.dbo.SP500_data
+    FROM datasets.dbo.SP500
     WHERE cik IS NOT NULL AND headquarters IS NOT NULL
 ),
 LocationWithRegion AS (
@@ -224,7 +203,7 @@ SELECT
     sp.volume,
     NULL,
     sp.price_change_percent
-FROM datasets.dbo.SP500_data sp
+FROM datasets.dbo.SP500 sp
 INNER JOIN Tempo t ON t.DataCompleta = sp.observation_date
 WHERE sp.cik IS NOT NULL
   AND sp.observation_date IS NOT NULL
@@ -259,7 +238,7 @@ SELECT
     NULL,
     sp.observation_date,
     NULL
-FROM datasets.dbo.SP500_data sp
+FROM datasets.dbo.SP500 sp
 INNER JOIN Tempo t ON t.DataCompleta = sp.observation_date
 WHERE sp.cik IS NOT NULL
   AND sp.observation_date IS NOT NULL
@@ -312,30 +291,30 @@ SELECT
     -- Se houver sp500_index, usar; senão usar AVG(close_price) como aproximação
     ISNULL(
         (SELECT AVG(TRY_CAST(sp2.sp500_index AS DECIMAL(18,2)))
-         FROM datasets.dbo.SP500_data sp2
+         FROM datasets.dbo.SP500 sp2
          WHERE sp2.observation_date = sp.observation_date AND sp2.sp500_index IS NOT NULL),
         AVG(TRY_CAST(sp.close_price AS DECIMAL(18,2)))
     ) AS ValorFechamento,
     ISNULL(
         (SELECT AVG(TRY_CAST(sp2.sp500_index AS DECIMAL(18,2)))
-         FROM datasets.dbo.SP500_data sp2
+         FROM datasets.dbo.SP500 sp2
          WHERE sp2.observation_date = sp.observation_date AND sp2.sp500_index IS NOT NULL),
         AVG(TRY_CAST(sp.open_price AS DECIMAL(18,2)))
     ) AS ValorAbertura,
     ISNULL(
         (SELECT AVG(TRY_CAST(sp2.sp500_index AS DECIMAL(18,2)))
-         FROM datasets.dbo.SP500_data sp2
+         FROM datasets.dbo.SP500 sp2
          WHERE sp2.observation_date = sp.observation_date AND sp2.sp500_index IS NOT NULL),
         MAX(TRY_CAST(sp.high_price AS DECIMAL(18,2)))
     ) AS ValorMaximo,
     ISNULL(
         (SELECT AVG(TRY_CAST(sp2.sp500_index AS DECIMAL(18,2)))
-         FROM datasets.dbo.SP500_data sp2
+         FROM datasets.dbo.SP500 sp2
          WHERE sp2.observation_date = sp.observation_date AND sp2.sp500_index IS NOT NULL),
         MIN(TRY_CAST(sp.low_price AS DECIMAL(18,2)))
     ) AS ValorMinimo,
     SUM(TRY_CAST(sp.volume AS BIGINT)) AS VolumeNegociado
-FROM datasets.dbo.SP500_data sp
+FROM datasets.dbo.SP500 sp
 WHERE sp.observation_date IS NOT NULL
   AND NOT EXISTS (
       SELECT 1 FROM SP500Historico
@@ -389,14 +368,14 @@ GO
 
 PRINT 'Populando dimensão EmpresasCSI500...';
 GO
-
+--TODO tem duas colunas que não tem dados
 ;WITH RankedCompanies AS (
     SELECT DISTINCT
         c.codigo_empresa,
         c.nome_empresa_en,
         c.industry_en,
-        c.subindustry_en,
-        c.region_en,
+        -- c.subindustry_en,
+        -- c.region_en,
         c.[date],
         ROW_NUMBER() OVER (PARTITION BY c.codigo_empresa ORDER BY c.[date]) as rn
     FROM datasets.dbo.CSI500 c
@@ -407,8 +386,8 @@ FirstDatePerCompany AS (
         codigo_empresa,
         nome_empresa_en,
         industry_en,
-        subindustry_en,
-        region_en,
+        -- subindustry_en,
+        -- region_en,
         MIN([date]) OVER (PARTITION BY codigo_empresa) AS DataPrimeiraObservacao
     FROM RankedCompanies
     WHERE rn = 1
@@ -418,7 +397,9 @@ USING FirstDatePerCompany AS source
 ON target.CodigoEmpresa = source.codigo_empresa
 WHEN NOT MATCHED THEN
     INSERT (CodigoEmpresa, NomeEmpresa, NomeEmpresaEN, Industria, SubIndustria, Regiao, DataPrimeiraObservacao)
-    VALUES (source.codigo_empresa, NULL, source.nome_empresa_en, source.industry_en, source.subindustry_en, source.region_en, source.DataPrimeiraObservacao);
+    VALUES (source.codigo_empresa, NULL, source.nome_empresa_en, source.industry_en, 
+    --source.subindustry_en, source.region_en,
+     source.DataPrimeiraObservacao);
 
 PRINT 'Dimensão EmpresasCSI500 populada/atualizada com ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' registros.';
 GO
