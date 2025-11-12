@@ -1,6 +1,6 @@
-# 📊 Sistema de Análise Financeira - S&P 500 & CSI500
+# Sistema de Análise Financeira - S&P 500 & CSI500
 
-Este repositório disponibiliza recursos para estruturar, gerenciar e explorar dados financeiros em um ambiente relacional, facilitando análises e tomadas de decisão baseadas em indicadores econômicos.
+Este repositório disponibiliza recursos para estruturar e explorar dados financeiros em um ambiente relacional, facilitando análises.
 
 O objetivo é avaliar as situações do mercado financeiro americano e chines em situações de crise econômica.  Usando essa avaliação para prever como os mercados irá se portar em futuras situações de crise.
 
@@ -11,19 +11,20 @@ O objetivo é avaliar as situações do mercado financeiro americano e chines em
 
 ---
 
-## 📋 Índice
+## Índice
 
 - [Visão Geral](#-visão-geral)
-- [Quick Start](#-quick-start)
+
+- [Estrutura dos Datasets](#-estrutura-dos-datasets)
 - [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Databases](#-databases)
 - [Análises Disponíveis](#-análises-disponíveis)
+- [Principais Perguntas a serem respondidas](#-principais-perguntas-a-serem-respondidas)
+- [Setup Ambiente](#-setup-ambiente)
 - [Uso](#-uso)
-- [Troubleshooting](#-troubleshooting)
 
 ---
 
-## 🎯 Visão Geral
+## Visão Geral
 
 Sistema de banco de dados para análise de **~1.3 milhões de registros** de dados financeiros:
 - **500 empresas** do S&P 500
@@ -46,8 +47,23 @@ Exemplos:
 -TempoID
 -IndiceID
 
+---
 
-## 📊 Análises Disponíveis
+## Estrutura do Projeto
+
+```
+├── datasets/                    # CSVs com dados (217MB)
+├── doc/                         # Dicionário de dados
+├── scripts/
+│   ├── 1-setup/                 # Setup e ETL
+│   ├── 2-analise/               # Scripts de análise
+│   └── 2-consultas/             # Visualização
+├── README.md                    # Este arquivo
+└── compose.yaml                  
+```
+---
+
+## Análises Disponíveis
 
 O projeto faz uso de um dataset financeiro real, que abrange dados sobre: 
 ### S&P 500
@@ -77,55 +93,22 @@ O projeto faz uso de um dataset financeiro real, que abrange dados sobre:
 - Retorno médio de dividendos por setor e empresa S&P 500
 - 
 
-## 🚀 Quick Start
+## Setup Ambiente
 
-### Pré-requisitos
+### Configurando o ambiente
 
-- Docker e Docker Compose
-- 8GB RAM disponível
-- 10GB espaço em disco
+# Clone o repositório
+git clone https://github.com/Mathwesm/Gerenciamento-Banco-de-dados.git
 
-### Linux/Mac
+# Acesse o diretório do projeto
+cd Gerenciamento-Banco-de-dados
 
-```bash
-# 1. Clonar e entrar no diretório
-cd Gerenciamento-Banco-de-dados_v2
-
-# 2. Executar setup automatizado
-./scripts-linux/1_setup_automatico.sh
-
-# 3. Aguardar ~3-5 minutos
-```
-
-### Windows
-
-```powershell
-.\scripts-windows\1_setup_automatico.ps1
-```
+# Suba os containers
+docker compose up -d
 
 ---
 
-## 📂 Estrutura do Projeto
-
-```
-├── datasets/                    # CSVs com dados (217MB)
-├── doc/                         # Dicionário de dados
-├── scripts/
-│   ├── 1-setup/                 # Setup e ETL
-│   ├── 2-analise/               # Scripts de análise
-│   ├── 2-consultas/             # Visualização
-│   └── 3-manutencao/            # Manutenção
-├── scripts-linux/               # Automação Linux
-├── scripts-windows/             # Automação Windows
-├── README.md                    # Este arquivo
-├── SETUP.md                     # Guia detalhado
-└── QUERIES_PRONTAS.md           # Exemplos de queries
-```
-
-
----
-
-## 🔧 Uso
+## Uso
 
 ### Conectar via DataGrip
 
@@ -136,11 +119,5 @@ User: SA
 Password: Cc202505!
 Databases: FinanceDB, datasets
 ```
----
 
-## 📚 Documentação
-
-- **[SETUP.md](SETUP.md)** - Guia detalhado
-- **[QUERIES_PRONTAS.md](QUERIES_PRONTAS.md)** - Exemplos
-- **doc/** - Dicionário de dados
 
