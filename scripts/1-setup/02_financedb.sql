@@ -1,30 +1,10 @@
--- ========================================
--- PARTE 1: CRIAR DATABASE FINANCEDB
--- ========================================
-USE master;
-GO
-
-PRINT 'Verificando database FinanceDB...';
-GO
-
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'FinanceDB')
 BEGIN
     CREATE DATABASE FinanceDB;
-    PRINT 'Database FinanceDB criado com sucesso!';
-END
-ELSE
-BEGIN
-    PRINT 'Database FinanceDB já existe.';
 END
 GO
 
--- ========================================
--- PARTE 2: CRIAR TABELAS NO DATABASE FINANCEDB
--- ========================================
 USE FinanceDB;
-GO
-
-PRINT 'Criando tabelas do modelo dimensional no database FinanceDB...';
 GO
 
 -- Tabela: SP500Historico
@@ -40,7 +20,6 @@ BEGIN
         VolumeNegociado BIGINT,
         PRIMARY KEY(IdSP500)
     );
-    PRINT 'Tabela SP500Historico criada.';
 END
 GO
 
@@ -60,7 +39,6 @@ BEGIN
         Site NVARCHAR(255),
         PRIMARY KEY(CIK)
     );
-    PRINT 'Tabela Empresas criada.';
 END
 GO
 
@@ -76,7 +54,6 @@ BEGIN
         PRIMARY KEY(IdSubSetor),
         FOREIGN KEY (CIK) REFERENCES Empresas(CIK)
     );
-    PRINT 'Tabela SubSetor criada.';
 END
 GO
 
@@ -94,7 +71,6 @@ BEGIN
         PRIMARY KEY(IdLocalizacao),
         FOREIGN KEY (CIK) REFERENCES Empresas(CIK)
     );
-    PRINT 'Tabela Localizacao criada.';
 END
 GO
 
@@ -116,7 +92,6 @@ BEGIN
         EhFeriado BIT DEFAULT 0,
         PRIMARY KEY(IdTempo)
     );
-    PRINT 'Tabela Tempo criada.';
 END
 GO
 
@@ -139,7 +114,6 @@ BEGIN
         FOREIGN KEY (CIK) REFERENCES Empresas(CIK),
         FOREIGN KEY (IdTempo) REFERENCES Tempo(IdTempo)
     );
-    PRINT 'Tabela PrecoAcao criada.';
 END
 GO
 
@@ -159,15 +133,9 @@ BEGIN
         FOREIGN KEY (CIK) REFERENCES Empresas(CIK),
         FOREIGN KEY (IdTempo) REFERENCES Tempo(IdTempo)
     );
-    PRINT 'Tabela Dividendos criada.';
 END
 GO
 
--- ========================================
--- TABELAS CSI500 (MERCADO CHINÊS)
--- ========================================
-
--- Tabela: EmpresasCSI500
 IF NOT EXISTS(SELECT name FROM sys.tables WHERE name = 'EmpresasCSI500')
 BEGIN
     CREATE TABLE EmpresasCSI500 (
@@ -180,7 +148,6 @@ BEGIN
         DataPrimeiraObservacao DATE,
         PRIMARY KEY(CodigoEmpresa)
     );
-    PRINT 'Tabela EmpresasCSI500 criada.';
 END
 GO
 
@@ -203,7 +170,6 @@ BEGIN
         FOREIGN KEY (CodigoEmpresa) REFERENCES EmpresasCSI500(CodigoEmpresa),
         FOREIGN KEY (IdTempo) REFERENCES Tempo(IdTempo)
     );
-    PRINT 'Tabela PrecoAcaoCSI500 criada.';
 END
 GO
 
@@ -218,70 +184,4 @@ BEGIN
         QtdEmpresasNegociadas INT,
         PRIMARY KEY(IdCSI500)
     );
-    PRINT 'Tabela CSI500Historico criada.';
 END
-GO
-
--- ========================================
--- PARTE 3: CRIAR ÍNDICES PARA PERFORMANCE
--- ========================================
-
-PRINT 'Criando índices...';
-GO
-
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_PrecoAcao_Data')
-    CREATE INDEX IX_PrecoAcao_Data ON PrecoAcao(IdTempo);
-
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_PrecoAcao_Empresa')
-    CREATE INDEX IX_PrecoAcao_Empresa ON PrecoAcao(CIK);
-
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Dividendos_Data')
-    CREATE INDEX IX_Dividendos_Data ON Dividendos(IdTempo);
-
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Dividendos_Empresa')
-    CREATE INDEX IX_Dividendos_Empresa ON Dividendos(CIK);
-
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Tempo_Data')
-    CREATE INDEX IX_Tempo_Data ON Tempo(DataCompleta);
-
--- Índices CSI500
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_PrecoAcaoCSI500_Data')
-    CREATE INDEX IX_PrecoAcaoCSI500_Data ON PrecoAcaoCSI500(IdTempo);
-
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_PrecoAcaoCSI500_Empresa')
-    CREATE INDEX IX_PrecoAcaoCSI500_Empresa ON PrecoAcaoCSI500(CodigoEmpresa);
-
-PRINT 'Índices criados com sucesso!';
-GO
-
--- ========================================
--- PARTE 4: VERIFICAÇÃO FINAL
--- ========================================
-
-PRINT '';
-PRINT '========================================';
-PRINT 'VERIFICAÇÃO FINAL';
-PRINT '========================================';
-GO
-
--- Verificar tabelas do FinanceDB
-USE FinanceDB;
-GO
-
-PRINT 'Tabelas no database FINANCEDB:';
-SELECT name as TabelaFinanceDB FROM sys.tables WHERE type = 'U' ORDER BY name;
-GO
-
--- Verificar tabelas do datasets
-USE datasets;
-GO
-
-PRINT 'Tabelas no database DATASETS:';
-SELECT name as TabelaDatasets FROM sys.tables WHERE type = 'U' ORDER BY name;
-GO
-
-PRINT 'Contagem de registros no DATASETS:';
-SELECT 'SP500_data' as Tabela, COUNT(*) as Total FROM SP500_data
-UNION ALL
-SELECT 'CSI500', COUNT(*) FROM CSI500;
-GO
