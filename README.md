@@ -95,7 +95,7 @@ O projeto faz uso de um dataset financeiro real, que abrange dados sobre:
 ## Setup Ambiente
 
 ### Configurando o ambiente
-
+```
 ### Clone o repositório
 git clone https://github.com/Mathwesm/Gerenciamento-Banco-de-dados.git
 
@@ -104,7 +104,7 @@ cd Gerenciamento-Banco-de-dados
 
 ### Suba os containers
 docker compose up -d
-
+```
 ---
 
 ## Uso
