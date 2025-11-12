@@ -3,6 +3,7 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     volumes:
       - ./datasets:/datasets:Z
+      - ./scripts:/scripts:Z
       - type: tmpfs
         target: /dev/shm
         tmpfs:
