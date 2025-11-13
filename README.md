@@ -18,8 +18,9 @@ O objetivo é avaliar as situações do mercado financeiro americano e chines em
 - [Estrutura do Projeto](#estrutura-do-projeto)
 - [Análises Disponíveis](#análises-disponíveis)
 - [Principais Perguntas a serem respondidas](#principais-perguntas-a-serem-respondidas)
+- [Datasets](#datasets)
 - [Setup Ambiente](#setup-ambiente)
-- [Uso](#uso)
+- [Backup](#backup)
 
 ---
 
@@ -90,7 +91,12 @@ O projeto faz uso de um dataset financeiro real, que abrange dados sobre:
 - Evolução do Índice S&P 500
 - Setores com melhor desempenho médio no S&P 500
 - Retorno médio de dividendos por setor e empresa S&P 500
-  
+
+
+## Datasets 
+Link para os [Datasets](https://github.com/Mathwesm/Dataseat_SP500xCSI500)
+
+---
 
 ## Setup Ambiente
 
